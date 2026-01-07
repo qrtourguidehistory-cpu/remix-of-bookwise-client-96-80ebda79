@@ -36,10 +36,26 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Pin androidx.browser to 1.8.0 to avoid SDK 36 requirement (Appflow build fix)
+    implementation 'androidx.browser:browser:1.8.0'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+}
+
+// Enforce resolution strategy to force androidx.browser:browser to 1.8.0 across all configurations
+configurations.all {
+    resolutionStrategy {
+        // Force this version regardless of transitive/upstream versions
+        force 'androidx.browser:browser:1.8.0'
+        eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'androidx.browser' && details.requested.name == 'browser') {
+                details.useVersion '1.8.0'
+                details.because 'Ensure browser 1.8.0 is used to avoid Android SDK 36 requirement'
+            }
+        }
+    }
 }
 
 apply from: 'capacitor.build.gradle'
