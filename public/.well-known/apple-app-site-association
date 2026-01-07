@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TEAM_ID.com.bookwise.client"],
+        "paths": [
+          "/booking/*",
+          "/business/*",
+          "/appointments/*",
+          "/auth/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID.com.bookwise.client"]
+  }
+}

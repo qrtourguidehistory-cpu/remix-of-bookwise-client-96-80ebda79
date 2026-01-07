@@ -1,0 +1,606 @@
+{
+  "common": {
+    "search": "Search",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "results": "results",
+    "viewAll": "View all",
+    "noResults": "No results found",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "remove": "Remove",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "login": "Log in",
+    "retry": "Retry",
+    "goBack": "Go back",
+    "linkCopied": "Link copied",
+    "loginRequired": "You must log in",
+    "noName": "No name"
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "appointments": "Appointments",
+    "favorites": "Favorites",
+    "profile": "Profile"
+  },
+  "home": {
+    "greeting": "Hello!",
+    "subtitle": "What service are you looking for today?",
+    "allEstablishments": "All Establishments",
+    "map": "Map",
+    "findYourService": "Find your ideal service"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "What service are you looking for?",
+    "categories": "Categories",
+    "clearFilter": "Clear filter",
+    "resultsFor": "results for"
+  },
+  "filters": {
+    "title": "Filters",
+    "filterBy": "Filter by",
+    "bestMatch": "Best match",
+    "nearest": "Nearest",
+    "topRated": "Top rated",
+    "maxPrice": "Max price",
+    "bookingOptions": "Booking options",
+    "hasPromotions": "Has promotions",
+    "acceptsGroups": "Accepts groups",
+    "establishmentType": "Establishment type",
+    "allTypes": "All",
+    "womenOnly": "Women only",
+    "menOnly": "Men only",
+    "clearAll": "Clear all",
+    "apply": "Apply"
+  },
+  "categories": {
+    "all": "All",
+    "hair-salon": "Hair Salon",
+    "nails": "Nails",
+    "eyebrows-lashes": "Eyebrows & Lashes",
+    "beauty-salon": "Beauty Salon",
+    "medspa": "Medspa",
+    "barber": "Barber",
+    "massage": "Massage",
+    "spa-sauna": "Spa & Sauna",
+    "waxing": "Waxing",
+    "tattoo-piercing": "Tattoo & Piercing",
+    "tanning": "Tanning",
+    "fitness-recovery": "Fitness & Recovery",
+    "physical-therapy": "Physical Therapy",
+    "health-practice": "Health Practice",
+    "pet-grooming": "Pet Grooming",
+    "restaurant": "Restaurants",
+    "other": "Other"
+  },
+  "business": {
+    "services": "Services",
+    "reviews": "Reviews",
+    "about": "About",
+    "contact": "Contact",
+    "schedule": "Schedule",
+    "book": "Book",
+    "continueBooking": "Continue with Booking",
+    "selectedServices": "selected services",
+    "paymentMethods": "Payment Methods",
+    "paymentMethodsDesc": "Payment is made directly at the establishment. Accepted methods:",
+    "cash": "Cash",
+    "creditCard": "Credit Card",
+    "debitCard": "Debit Card",
+    "transfer": "Bank Transfer",
+    "cancellationPolicy": "Cancellation Policy",
+    "cancellationPolicyText": "Cancellations must be made at least",
+    "cancellationHours": "24 hours in advance",
+    "cancellationNote": "Refund policy varies by establishment. Some offer full refund, partial or no refund for advance payments.",
+    "openNow": "Open now",
+    "closedNow": "Closed now",
+    "closesAt": "Closes at",
+    "phone": "Phone",
+    "address": "Address",
+    "service": "service",
+    "services_count": "service(s)",
+    "min": "min",
+    "notFound": "Establishment not found",
+    "noImage": "No image",
+    "noServices": "No services available"
+  },
+  "booking": {
+    "title": "Book Appointment",
+    "selectedServices": "Selected Services",
+    "yourData": "Your Information",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
+    "phone": "Phone",
+    "email": "Email",
+    "selectProfessional": "Select a Professional",
+    "assignProfessionals": "Assign Professionals per Service",
+    "selectDate": "Select a Date",
+    "availableTimes": "Available Times",
+    "paymentInfo": "Payment Information",
+    "paymentNote": "This app does not process payments. Payment is made directly at the establishment.",
+    "confirmBooking": "Confirm Booking",
+    "confirming": "Confirming...",
+    "total": "Total",
+    "min": "min",
+    "bookingConfirmed": "Booking Confirmed!",
+    "bookingConfirmedDesc": "Your appointment has been confirmed.",
+    "anyProfessional": "Any available professional",
+    "closedTitle": "Closed",
+    "closedMessage": "This establishment is closed on the selected day. Please choose another date.",
+    "noServices": "No services selected",
+    "selectServicesFirst": "Please select services first from the establishment page"
+  },
+  "appointments": {
+    "title": "My Appointments",
+    "upcoming": "Upcoming Appointments",
+    "history": "History",
+    "noUpcoming": "You have no upcoming appointments",
+    "noHistory": "You have no appointment history",
+    "bookNew": "Book New Appointment",
+    "viewDetails": "View Details",
+    "cancelAppointment": "Cancel Appointment",
+    "rebookAppointment": "Book again",
+    "cancelled": "Cancelled",
+    "completed": "Completed",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "appointmentDetails": "Appointment Details",
+    "cancelConfirmTitle": "Cancel this appointment?",
+    "cancelConfirmDesc": "This action cannot be undone. The appointment will be cancelled.",
+    "cancelSuccess": "Appointment cancelled",
+    "cancelSuccessDesc": "Your appointment has been cancelled successfully.",
+    "explore": "Explore our establishments and book your first appointment"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "noFavorites": "You have no favorites yet",
+    "noFavoritesDescription": "Explore establishments and save your favorites by tapping the heart",
+    "explorePlaces": "Explore places",
+    "loginRequired": "Log in to see favorites"
+  },
+  "profile": {
+    "title": "My Profile",
+    "editProfile": "Edit Profile",
+    "personalInfo": "Personal Information",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "helpSupport": "Help & Support",
+    "logout": "Log Out",
+    "appointments": "Appointments",
+    "reviews": "Reviews",
+    "upcomingAppointment": "Upcoming Appointment",
+    "user": "User",
+    "noEmail": "No email",
+    "address": "Address",
+    "yourAddress": "Your address",
+    "birthDate": "Birth date",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Your first name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Your last name",
+    "guest": "Guest",
+    "loginRequired": "Log in to continue",
+    "loginRequiredDesc": "You need an account to access your profile and manage your appointments"
+  },
+  "personalInfo": {
+    "title": "Personal Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "changePhoto": "Change photo",
+    "saved": "Changes saved",
+    "savedDesc": "Your personal information has been updated"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "You have no notifications",
+    "markAllRead": "Mark all",
+    "viewAll": "View all notifications",
+    "push": "Push Notifications",
+    "pushDesc": "Receive alerts on your device",
+    "email": "Email Notifications",
+    "emailDesc": "Receive updates by email",
+    "sms": "SMS Notifications",
+    "smsDesc": "Receive text messages",
+    "appointmentReminders": "Appointment Reminders",
+    "appointmentRemindersDesc": "Receive notifications before your scheduled appointments",
+    "promotions": "Promotions and offers",
+    "promotionsDesc": "Get special discounts and exclusive offers",
+    "reviewRequests": "Review requests",
+    "reviewRequestsDesc": "We'll ask for your feedback after each visit",
+    "businessMessages": "Business messages",
+    "businessMessagesDesc": "Receive communications from salons you visit",
+    "appUpdates": "App updates",
+    "appUpdatesDesc": "News and new features available",
+    "emailSection": "Email",
+    "weeklySummary": "Weekly summary",
+    "weeklySummaryDesc": "Receive a summary of your appointments and recommendations",
+    "preferencesNote": "You can change these preferences at any time",
+    "settingsSaved": "Preferences saved",
+    "settingsSavedDesc": "Your notification preferences have been updated",
+    "appointmentReminder": "Appointment reminder",
+    "appointmentReminderMsg": "Your appointment at Glam Studio is tomorrow at 10:00 AM",
+    "specialOffer": "Special offer!",
+    "specialOfferMsg": "20% off hair treatments this weekend",
+    "rateExperience": "Rate your experience",
+    "rateExperienceMsg": "How was your visit to Zen Spa & Wellness?",
+    "appUpdate": "App update",
+    "appUpdateMsg": "New features available. Explore them!",
+    "activated": "Notification activated",
+    "deactivated": "Notification deactivated",
+    "weeklySummaryActivated": "Weekly summary activated",
+    "weeklySummaryDeactivated": "Weekly summary deactivated",
+    "timeAgo": {
+      "hour": "1 hour ago",
+      "hours": "3 hours ago",
+      "day": "1 day ago",
+      "days": "2 days ago"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "darkModeDesc": "Switch between light and dark theme",
+    "language": "Language",
+    "languageDesc": "Select your preferred language",
+    "timeFormat": "Time format",
+    "timeFormatDesc": "Select how to view times",
+    "timeFormatChanged": "Time format changed",
+    "timeFormat12h": "12-hour format (AM/PM)",
+    "timeFormat24h": "24-hour format",
+    "themeColor": "Theme color",
+    "selectThemeColor": "Select a color to customize the app",
+    "themeColorChanged": "Theme color changed",
+    "security": "Security",
+    "biometric": "Biometric Authentication",
+    "biometricDesc": "Use fingerprint or face to access",
+    "biometricEnabled": "Biometric authentication enabled",
+    "biometricDisabled": "Biometric authentication disabled",
+    "biometricNotSupported": "Your device does not support biometric authentication",
+    "biometricFailed": "Failed to enable biometric authentication",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Enter your current password and new password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordChanged": "Password updated",
+    "passwordChangedDesc": "Your password has been changed successfully",
+    "passwordMismatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "dataPrivacy": "Data & Privacy",
+    "privacyPolicy": "Privacy Policy",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and all your data",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.",
+    "deleteAccountButton": "Delete my account",
+    "accountDeleted": "Account deleted",
+    "accountDeletedDesc": "All your data has been deleted",
+    "themeChanged": "Theme changed",
+    "lightModeEnabled": "Light mode enabled",
+    "darkModeEnabled": "Dark mode enabled",
+    "languageChanged": "Language changed",
+    "languageChangedTo": "Language has been changed to",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "logoutSuccess": "You have been logged out successfully"
+  },
+  "auth": {
+    "splash": {
+      "loading": "Loading...",
+      "slogan": "Book your appointment instantly without waiting in line"
+    },
+    "welcome": {
+      "continue": "Continue",
+      "getStarted": "Get Started",
+      "termsNote": "By continuing, you agree to our Terms of Service and Privacy Policy",
+      "termsAcceptance": "By continuing, you agree to our",
+      "termsOfService": "Terms of Service",
+      "privacyPolicy": "Privacy Policy",
+      "and": "and",
+      "acceptTermsError": "Please accept the terms to continue",
+      "slide1Title": "Book Appointments Easily",
+      "slide1Desc": "Find and book appointments at your favorite beauty and wellness establishments in seconds",
+      "slide2Title": "Discover Top-Rated Places",
+      "slide2Desc": "Browse reviews and ratings to find the perfect salon, spa, or barbershop for you",
+      "slide3Title": "Never Miss an Appointment",
+      "slide3Desc": "Get reminders before your appointments so you're always on time",
+      "slide4Title": "Find Places Near You",
+      "slide4Desc": "Discover amazing establishments right in your neighborhood with our location features"
+    },
+    "login": {
+      "title": "Log in or sign up",
+      "subtitle": "Create an account or log in to book appointments",
+      "continueWith": "Continue with",
+      "apple": "Apple",
+      "google": "Google",
+      "email": "Email",
+      "or": "OR",
+      "enterPhone": "Enter your mobile number",
+      "support": "Support",
+      "continueAsGuest": "Continue as Guest"
+    },
+    "otp": {
+      "title": "Enter the 4-digit code sent to",
+      "changeNumber": "Changed your mobile number?",
+      "resend": "Resend code via SMS",
+      "resendIn": "Resend in",
+      "verify": "Verify",
+      "verifying": "Verifying..."
+    },
+    "register": {
+      "title": "Create Account",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "password": "Password",
+      "phone": "Mobile number",
+      "email": "Email address",
+      "agreeTerms": "I agree to Privacy Policy, Terms of Use",
+      "noMarketing": "I do not wish to receive marketing notifications",
+      "continue": "Create Account",
+      "creating": "Creating account..."
+    },
+    "emailAuth": {
+      "title": "Continue with Email",
+      "loginTab": "Log In",
+      "signupTab": "Sign Up",
+      "email": "Email address",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "login": "Log In",
+      "signup": "Sign Up",
+      "forgotPassword": "Forgot password?",
+      "loggingIn": "Logging in...",
+      "signingUp": "Signing up..."
+    },
+    "biometric": {
+      "enable": "Enable biometric login?",
+      "description": "Use your fingerprint or face to log in faster",
+      "enableButton": "Enable",
+      "notNow": "Not now"
+    },
+    "errors": {
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidOtp": "Please enter the complete verification code",
+      "otpFailed": "Verification failed. Please try again.",
+      "loginFailed": "Login failed. Please check your credentials.",
+      "signupFailed": "Sign up failed. Please try again.",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "termsRequired": "You must agree to the terms to continue"
+    },
+    "forgotPassword": "Forgot Password",
+    "resetYourPassword": "Reset Your Password",
+    "enterEmailToReset": "Enter your email address and we'll send you a link to reset your password.",
+    "sendResetLink": "Send Reset Link",
+    "sending": "Sending...",
+    "resetEmailSent": "Reset Email Sent",
+    "checkInbox": "Check your inbox for the password reset link.",
+    "checkYourEmail": "Check Your Email",
+    "resetEmailSentTo": "We've sent a password reset link to",
+    "clickLinkInEmail": "Click the link in the email to reset your password. The link will expire in 24 hours.",
+    "sendAgain": "Send Again",
+    "backToLogin": "Back to Login",
+    "rememberPassword": "Remember your password?",
+    "signIn": "Sign In",
+    "enterEmail": "Please enter your email address",
+    "error": "Error",
+    "resetError": "Failed to send reset email. Please try again.",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com"
+  },
+  "map": {
+    "title": "Map",
+    "establishments": "Establishments",
+    "viewOnMap": "View on map",
+    "getDirections": "Get directions",
+    "nearYou": "Near you",
+    "addApiKey": "Configure your Mapbox API key to view the map",
+    "enterApiKey": "Enter your Mapbox API key"
+  },
+  "languages": {
+    "es": "Español",
+    "en": "English",
+    "fr": "Français"
+  },
+  "reviews": {
+    "title": "My Reviews",
+    "pending": "Pending",
+    "pendingToRate": "Pending to Rate",
+    "completed": "Completed",
+    "completedReviews": "Completed Reviews",
+    "noPending": "You have no pending reviews",
+    "noCompleted": "You have no completed reviews",
+    "rateNow": "Rate now",
+    "submitReview": "Submit Review",
+    "shareFeedback": "Tell us about your experience (optional)",
+    "selectRating": "Please select a rating",
+    "expired": "Expired",
+    "thankYou": "Thank you for your review!",
+    "submitError": "Could not submit the review",
+    "reviewSubmitted": "Your review has been submitted",
+    "writeReview": "Write your review",
+    "yourExperience": "How was your experience?",
+    "noReviews": "No reviews yet",
+    "noReviewsDesc": "After completing an appointment, you can leave a review",
+    "establishment": "Establishment"
+  },
+  "help": {
+    "title": "Help & Support",
+    "quickContact": "Quick Contact",
+    "chat": "Chat",
+    "email": "Email",
+    "call": "Call",
+    "faq": "Frequently Asked Questions",
+    "contactUs": "Contact Us",
+    "reportIssue": "Report an Issue",
+    "contactingSupport": "Contacting support",
+    "opening": "Opening",
+    "resources": "Resources",
+    "userGuide": "User Guide",
+    "termsConditions": "Terms and Conditions",
+    "privacyPolicy": "Privacy Policy",
+    "faqCancelAppointment": "How can I cancel an appointment?",
+    "faqCancelAppointmentAnswer": "You can cancel your appointment from the 'My Appointments' section. Select the appointment you want to cancel and press the 'Cancel' button. Note that some cancellations may be subject to business policies.",
+    "faqPayments": "How do payments work?",
+    "faqPaymentsAnswer": "This app does not process payments. Payment is made directly at the establishment according to their accepted methods (cash, card, transfer).",
+    "faqModifyBooking": "Can I modify my reservation?",
+    "faqModifyBookingAnswer": "Yes, you can modify your reservation as long as it's in advance. Go to 'My Appointments', select the appointment and look for the modify option. Availability of changes depends on the business.",
+    "faqBusinessCancel": "What do I do if the business cancels my appointment?",
+    "faqBusinessCancelAnswer": "If a business cancels your appointment, you will receive an immediate notification. You can reschedule at no additional cost or choose another establishment.",
+    "faqLeaveReview": "How do I leave a review?",
+    "faqLeaveReviewAnswer": "After your visit, you will receive a notification to leave a review. You can also go to the business profile and select 'Write review' at any time."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "section1Title": "1. Information We Collect",
+    "section1Content": "We collect information you provide directly to us, including:\n\n• Full name\n• Email address\n• Phone number\n• Physical address (optional)\n• Date of birth (optional)\n• Profile photo (optional)",
+    "section2Title": "2. How We Use Your Information",
+    "section2Content": "We use the collected information to:\n\n• Manage your reservations and appointments\n• Send reminders and confirmations\n• Personalize your experience in the app\n• Communicate with you about promotions and news\n• Improve our services",
+    "section3Title": "3. Sharing Information",
+    "section3Content": "We share your information only with the establishments where you make reservations, so they can provide you with the requested service. We do not sell or share your personal information with third parties for marketing purposes.",
+    "section4Title": "4. Data Security",
+    "section4Content": "We implement technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure or destruction. This includes:\n\n• Data encryption in transit (HTTPS/TLS)\n• Secure storage on protected servers\n• Role-based access control\n• Regular security audits",
+    "section5Title": "5. Your Rights",
+    "section5Content": "You have the right to:\n\n• Access your personal data\n• Rectify incorrect information\n• Request deletion of your data\n• Object to processing of your data\n• Download a copy of your data",
+    "section6Title": "6. Cancellation Policy",
+    "section6Content": "Important: This app does not process payments. Cancellation and refund policies are established by each establishment individually. We recommend:\n\n• Cancel at least 24 hours in advance\n• Check the specific establishment policy\n• Some establishments may charge for late cancellations",
+    "section7Title": "7. Cookies and Similar Technologies",
+    "section7Content": "We use local storage to save your preferences and improve your experience. This includes language preferences, theme (light/dark) and notification settings.",
+    "section8Title": "8. Changes to this Policy",
+    "section8Content": "We may update this privacy policy occasionally. We will notify you of any significant changes through the app or by email.",
+    "section9Title": "9. Contact",
+    "section9Content": "If you have questions about this privacy policy or how we handle your data, you can contact us at:",
+    "contactEmail": "Email: privacy@bookwise.app",
+    "contactPhone": "Phone: +1 809 555 0000"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated",
+    "allRightsReserved": "All rights reserved.",
+    "contactEmail": "Email: legal@bookwise.app",
+    "section1Title": "1. Acceptance of Terms",
+    "section1Content": "By accessing or using the Bookwise application, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.\n\nThese terms apply to all users of the app, including browsers, customers, and merchants.",
+    "section2Title": "2. Description of Service",
+    "section2Content": "Bookwise provides a platform that connects customers with beauty and wellness service providers. We facilitate:\n\n• Appointment booking and management\n• Business discovery and reviews\n• Communication between customers and businesses\n• Reminder notifications for appointments",
+    "section3Title": "3. User Accounts",
+    "section3Content": "To use certain features of our service, you must create an account. You are responsible for:\n\n• Maintaining the confidentiality of your account credentials\n• All activities that occur under your account\n• Notifying us immediately of any unauthorized use\n• Providing accurate and complete information",
+    "section4Title": "4. Booking and Cancellation",
+    "section4Content": "When you book an appointment through Bookwise:\n\n• You agree to the establishment's specific policies\n• Cancellations should be made at least 24 hours in advance\n• No-shows may result in restrictions on your account\n• Individual businesses may have additional policies\n\nNote: Bookwise does not process payments. All transactions occur directly with the service provider.",
+    "section5Title": "5. User Conduct",
+    "section5Content": "You agree not to:\n\n• Violate any applicable laws or regulations\n• Impersonate any person or entity\n• Submit false or misleading information\n• Harass or abuse service providers\n• Attempt to manipulate reviews or ratings\n• Use the service for any illegal purpose",
+    "section6Title": "6. Limitation of Liability",
+    "section6Content": "Bookwise acts solely as an intermediary between customers and service providers. We are not responsible for:\n\n• The quality of services provided by businesses\n• Disputes between customers and providers\n• Personal injuries or property damage\n• Business availability or pricing changes",
+    "section7Title": "7. Changes to Terms",
+    "section7Content": "We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms. We will notify users of significant changes via the app or email."
+  },
+  "establishments": {
+    "glamStudio": {
+      "description": "Specialists in modern cuts, personalized coloring and premium hair treatments."
+    },
+    "hairArtPro": {
+      "description": "Certified stylists in the latest trends. Specialty in fantasy color and extensions."
+    },
+    "nailArtStudio": {
+      "description": "Manicure, pedicure and artistic designs. The latest trends in nail art."
+    },
+    "perfectNailsSpa": {
+      "description": "Acrylic, gel and semi-permanent nails. Relaxing atmosphere and personalized attention."
+    },
+    "lashBrowBar": {
+      "description": "Lash extensions, microblading and professional eyebrow design."
+    },
+    "browStudioElite": {
+      "description": "Specialists in brow lamination, lash lifting and tinting."
+    },
+    "beautyLoungeMUA": {
+      "description": "Professional makeup for events, brides and photo sessions."
+    },
+    "glamourBeautyCenter": {
+      "description": "Comprehensive beauty center with makeup, hairdressing and styling services."
+    },
+    "aestheticMedClinic": {
+      "description": "Advanced facial treatments, botox, hyaluronic acid and rejuvenation."
+    },
+    "dermaSpa": {
+      "description": "Aesthetic medicine, chemical peels and state-of-the-art laser treatments."
+    },
+    "barberKings": {
+      "description": "Premium barbershop for gentlemen. Classic and modern cuts, traditional shaving."
+    },
+    "gentlemansCut": {
+      "description": "Classic style barbershop with premium male grooming services."
+    },
+    "thaiMassage": {
+      "description": "Traditional Thai massages, reflexology and aromatherapy."
+    },
+    "relaxRestore": {
+      "description": "Therapeutic, sports and relaxing massages. Complete spa experience."
+    },
+    "serenitySpa": {
+      "description": "Your relaxation oasis. Therapeutic massages, rejuvenating facials and body treatments."
+    },
+    "zenWellness": {
+      "description": "Sauna, Turkish bath, jacuzzi and total relaxation treatments."
+    },
+    "smoothWax": {
+      "description": "Waxing, laser and Brazilian techniques. Professional results."
+    },
+    "bareBeauty": {
+      "description": "Hair removal specialists. Gentle techniques and hypoallergenic products."
+    },
+    "inkMasters": {
+      "description": "Artistic tattoos, realism, traditional and covers. Certified artists."
+    },
+    "urbanBodyArt": {
+      "description": "Professional piercings and custom tattoos. Highest hygiene standards."
+    },
+    "sunGlow": {
+      "description": "UV cabin tanning and spray tan. Natural and long-lasting results."
+    },
+    "bronzeStudio": {
+      "description": "Sunless tanning, premium self-tanners and hydration treatments."
+    },
+    "recoveryZone": {
+      "description": "Cryotherapy, sports massages and advanced muscle recovery."
+    },
+    "athleticWellness": {
+      "description": "Sports recovery center. Stretching, physio and nutrition."
+    },
+    "physioMed": {
+      "description": "Physical therapy and rehabilitation. Professional treatments for injuries."
+    },
+    "moveWellClinic": {
+      "description": "Physical therapists specialized in mobility, posture and sports injuries."
+    },
+    "holisticHealth": {
+      "description": "Alternative therapies, acupuncture, chiropractic and natural wellness."
+    },
+    "mindBodyCenter": {
+      "description": "Holistic health center. Yoga, meditation and integrative therapies."
+    },
+    "pawPerfect": {
+      "description": "Pet grooming. Baths, haircuts and treatments for dogs and cats."
+    },
+    "fluffyTails": {
+      "description": "Premium pet spa. Grooming, massages and wellness for pets."
+    }
+  },
+  "common_ui": {
+    "viewMore": "View More"
+  }
+}

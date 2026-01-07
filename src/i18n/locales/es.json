@@ -1,0 +1,619 @@
+{
+  "common": {
+    "search": "Buscar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "results": "resultados",
+    "viewAll": "Ver todos",
+    "noResults": "No se encontraron resultados",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "login": "Iniciar sesión",
+    "retry": "Reintentar",
+    "goBack": "Volver",
+    "linkCopied": "Enlace copiado",
+    "loginRequired": "Debes iniciar sesión",
+    "noName": "Sin nombre"
+  },
+  "nav": {
+    "home": "Inicio",
+    "search": "Buscar",
+    "appointments": "Citas",
+    "favorites": "Favoritos",
+    "profile": "Perfil"
+  },
+  "home": {
+    "greeting": "¡Hola!",
+    "subtitle": "¿Qué servicio buscas hoy?",
+    "allEstablishments": "Todos los Establecimientos",
+    "map": "Mapa",
+    "findYourService": "Encuentra tu servicio ideal"
+  },
+  "search": {
+    "title": "Buscar",
+    "placeholder": "¿Qué servicio buscas?",
+    "categories": "Categorías",
+    "clearFilter": "Limpiar filtro",
+    "resultsFor": "resultados para"
+  },
+  "filters": {
+    "title": "Filtros",
+    "filterBy": "Filtrar por",
+    "bestMatch": "Mejor coincidencia",
+    "nearest": "Más cercanos",
+    "topRated": "Mejor valorado",
+    "maxPrice": "Precio máx.",
+    "bookingOptions": "Opciones de reserva",
+    "hasPromotions": "Ofrece promociones",
+    "acceptsGroups": "Acepta grupos",
+    "establishmentType": "Tipo de establecimiento",
+    "allTypes": "Todos",
+    "womenOnly": "Solo mujeres",
+    "menOnly": "Solo hombres",
+    "clearAll": "Eliminar todos",
+    "apply": "Aplicar"
+  },
+  "categories": {
+    "all": "Todos",
+    "hair-salon": "Peluquería",
+    "nails": "Uñas",
+    "eyebrows-lashes": "Cejas y Pestañas",
+    "beauty-salon": "Salón de Belleza",
+    "medspa": "Medspa",
+    "barber": "Barbería",
+    "massage": "Masajes",
+    "spa-sauna": "Spa y Sauna",
+    "waxing": "Depilación",
+    "tattoo-piercing": "Tatuajes y Piercing",
+    "tanning": "Bronceado",
+    "fitness-recovery": "Fitness y Recuperación",
+    "physical-therapy": "Fisioterapia",
+    "health-practice": "Salud",
+    "pet-grooming": "Mascotas",
+    "restaurant": "Restaurantes",
+    "other": "Otros"
+  },
+  "business": {
+    "services": "Servicios",
+    "reviews": "reseñas",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "schedule": "Horario",
+    "book": "Reservar",
+    "continueBooking": "Continuar con la Reserva",
+    "selectedServices": "servicios seleccionados",
+    "paymentMethods": "Métodos de Pago",
+    "paymentMethodsDesc": "El pago se realiza directamente en el establecimiento. Métodos aceptados:",
+    "cash": "Efectivo",
+    "creditCard": "Tarjeta de crédito",
+    "debitCard": "Tarjeta de débito",
+    "transfer": "Transferencia",
+    "cancellationPolicy": "Política de Cancelación",
+    "cancellationPolicyText": "Las cancelaciones deben realizarse con al menos",
+    "cancellationHours": "24 horas de anticipación",
+    "cancellationNote": "La política de reembolso varía según el establecimiento. Algunos ofrecen reembolso completo, parcial o no ofrecen reembolso en caso de pago anticipado.",
+    "openNow": "Abierto ahora",
+    "closedNow": "Cerrado ahora",
+    "closesAt": "Cierra a las",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "service": "servicio",
+    "services_count": "servicio(s)",
+    "min": "min",
+    "notFound": "Establecimiento no encontrado",
+    "noImage": "Sin imagen",
+    "noServices": "No hay servicios disponibles"
+  },
+  "booking": {
+    "title": "Reservar Cita",
+    "selectedServices": "Servicios Seleccionados",
+    "yourData": "Tus Datos",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre completo",
+    "phone": "Teléfono",
+    "email": "Email",
+    "selectProfessional": "Selecciona un Profesional",
+    "assignProfessionals": "Asigna Profesionales por Servicio",
+    "selectDate": "Selecciona una Fecha",
+    "availableTimes": "Horarios Disponibles",
+    "paymentInfo": "Información de Pago",
+    "paymentNote": "Esta app no procesa pagos. El pago se realiza directamente en el establecimiento.",
+    "confirmBooking": "Confirmar Reserva",
+    "confirming": "Confirmando...",
+    "total": "Total",
+    "min": "min",
+    "bookingConfirmed": "¡Reserva Confirmada!",
+    "bookingConfirmedDesc": "Tu cita ha sido confirmada.",
+    "anyProfessional": "Cualquier profesional disponible",
+    "closedTitle": "Cerrado",
+    "closedMessage": "Este establecimiento está cerrado el día seleccionado. Por favor, elige otra fecha.",
+    "noServices": "No hay servicios seleccionados",
+    "selectServicesFirst": "Por favor selecciona servicios primero desde la página del establecimiento"
+  },
+  "appointments": {
+    "title": "Mis Citas",
+    "upcoming": "Próximas Citas",
+    "history": "Historial",
+    "noUpcoming": "No tienes citas próximas",
+    "noHistory": "No tienes historial de citas",
+    "bookNew": "Reservar Nueva Cita",
+    "viewDetails": "Ver Detalles",
+    "cancelAppointment": "Cancelar Cita",
+    "rebookAppointment": "Reservar de nuevo",
+    "cancelled": "Cancelada",
+    "completed": "Completada",
+    "confirmed": "Confirmada",
+    "pending": "Pendiente",
+    "appointmentDetails": "Detalles de la Cita",
+    "cancelConfirmTitle": "¿Cancelar esta cita?",
+    "cancelConfirmDesc": "Esta acción no se puede deshacer. La cita será cancelada.",
+    "cancelSuccess": "Cita cancelada",
+    "cancelSuccessDesc": "Tu cita ha sido cancelada exitosamente.",
+    "delete": "Eliminar",
+    "explore": "Explora nuestros establecimientos y reserva tu primera cita"
+  },
+  "favorites": {
+    "title": "Favoritos",
+    "noFavorites": "No tienes favoritos aún",
+    "noFavoritesDescription": "Explora establecimientos y guarda tus favoritos tocando el corazón",
+    "explorePlaces": "Explora lugares",
+    "loginRequired": "Inicia sesión para ver favoritos"
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "editProfile": "Editar Perfil",
+    "personalInfo": "Información Personal",
+    "notifications": "Notificaciones",
+    "settings": "Ajustes",
+    "helpSupport": "Ayuda y Soporte",
+    "logout": "Cerrar Sesión",
+    "appointments": "Citas",
+    "reviews": "Reseñas",
+    "upcomingAppointment": "Próxima Cita",
+    "user": "Usuario",
+    "noEmail": "Sin email",
+    "address": "Dirección",
+    "yourAddress": "Tu dirección",
+    "birthDate": "Fecha de nacimiento",
+    "firstName": "Nombre",
+    "firstNamePlaceholder": "Tu nombre",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "Tu apellido",
+    "guest": "Invitado",
+    "loginRequired": "Inicia sesión para continuar",
+    "loginRequiredDesc": "Necesitas una cuenta para acceder a tu perfil y gestionar tus citas"
+  },
+  "personalInfo": {
+    "title": "Información Personal",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "changePhoto": "Cambiar foto",
+    "saved": "Cambios guardados",
+    "savedDesc": "Tu información personal ha sido actualizada"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "noNotifications": "No tienes notificaciones",
+    "markAllRead": "Marcar todas",
+    "viewAll": "Ver todas las notificaciones",
+    "push": "Notificaciones Push",
+    "pushDesc": "Recibe alertas en tu dispositivo",
+    "email": "Notificaciones por Email",
+    "emailDesc": "Recibe actualizaciones por correo",
+    "sms": "Notificaciones por SMS",
+    "smsDesc": "Recibe mensajes de texto",
+    "appointmentReminders": "Recordatorios de Citas",
+    "appointmentRemindersDesc": "Recibe notificaciones antes de tus citas programadas",
+    "promotions": "Promociones y ofertas",
+    "promotionsDesc": "Entérate de descuentos especiales y ofertas exclusivas",
+    "reviewRequests": "Solicitud de reseñas",
+    "reviewRequestsDesc": "Te pediremos tu opinión después de cada visita",
+    "businessMessages": "Mensajes de negocios",
+    "businessMessagesDesc": "Recibe comunicaciones de los salones que visitas",
+    "appUpdates": "Actualizaciones de la app",
+    "appUpdatesDesc": "Novedades y nuevas funciones disponibles",
+    "emailSection": "Correo Electrónico",
+    "weeklySummary": "Resumen semanal",
+    "weeklySummaryDesc": "Recibe un resumen de tus citas y recomendaciones",
+    "preferencesNote": "Puedes cambiar estas preferencias en cualquier momento",
+    "settingsSaved": "Preferencias guardadas",
+    "settingsSavedDesc": "Tus preferencias de notificación han sido actualizadas",
+    "appointmentReminder": "Recordatorio de cita",
+    "appointmentReminderMsg": "Tu cita en Glam Studio es mañana a las 10:00 AM",
+    "specialOffer": "¡Oferta especial!",
+    "specialOfferMsg": "20% de descuento en tratamientos capilares este fin de semana",
+    "rateExperience": "Califica tu experiencia",
+    "rateExperienceMsg": "¿Cómo fue tu visita a Zen Spa & Wellness?",
+    "appUpdate": "Actualización de la app",
+    "appUpdateMsg": "Nuevas funcionalidades disponibles. ¡Explóralas!",
+    "activated": "Notificación activada",
+    "deactivated": "Notificación desactivada",
+    "weeklySummaryActivated": "Resumen semanal activado",
+    "weeklySummaryDeactivated": "Resumen semanal desactivado",
+    "timeAgo": {
+      "hour": "Hace 1 hora",
+      "hours": "Hace 3 horas",
+      "day": "Hace 1 día",
+      "days": "Hace 2 días"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "appearance": "Apariencia",
+    "darkMode": "Modo Oscuro",
+    "darkModeDesc": "Cambiar entre tema claro y oscuro",
+    "language": "Idioma",
+    "languageDesc": "Selecciona tu idioma preferido",
+    "timeFormat": "Formato de hora",
+    "timeFormatDesc": "Selecciona cómo ver las horas",
+    "timeFormatChanged": "Formato de hora cambiado",
+    "timeFormat12h": "Formato de 12 horas (AM/PM)",
+    "timeFormat24h": "Formato de 24 horas",
+    "themeColor": "Tema de colores",
+    "selectThemeColor": "Selecciona un color para personalizar la app",
+    "themeColorChanged": "Tema de colores cambiado",
+    "security": "Seguridad",
+    "biometric": "Autenticación Biométrica",
+    "biometricDesc": "Usa tu huella o rostro para acceder",
+    "biometricEnabled": "Autenticación biométrica activada",
+    "biometricDisabled": "Autenticación biométrica desactivada",
+    "biometricNotSupported": "Tu dispositivo no soporta autenticación biométrica",
+    "changePassword": "Cambiar Contraseña",
+    "changePasswordDesc": "Ingresa tu contraseña actual y la nueva contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "passwordChanged": "Contraseña actualizada",
+    "passwordChangedDesc": "Tu contraseña ha sido cambiada exitosamente",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "dataPrivacy": "Datos y Privacidad",
+    "privacyPolicy": "Política de Privacidad",
+    "dangerZone": "Zona de Peligro",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleteAccountDesc": "Eliminar permanentemente tu cuenta y todos tus datos",
+    "deleteAccountConfirm": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y perderás todos tus datos.",
+    "deleteAccountButton": "Eliminar mi cuenta",
+    "accountDeleted": "Cuenta eliminada",
+    "accountDeletedDesc": "Todos tus datos han sido eliminados",
+    "themeChanged": "Tema cambiado",
+    "lightModeEnabled": "Modo claro activado",
+    "darkModeEnabled": "Modo oscuro activado",
+    "languageChanged": "Idioma cambiado",
+    "languageChangedTo": "El idioma ha sido cambiado a"
+  },
+  "map": {
+    "title": "Mapa",
+    "establishments": "Establecimientos",
+    "viewOnMap": "Ver en mapa",
+    "getDirections": "Cómo llegar",
+    "nearYou": "Cerca de ti",
+    "addApiKey": "Configura tu clave de API de Mapbox para ver el mapa",
+    "enterApiKey": "Ingresa tu clave de API de Mapbox"
+  },
+  "languages": {
+    "es": "Español",
+    "en": "English",
+    "fr": "Français"
+  },
+  "reviews": {
+    "title": "Mis Reseñas",
+    "pending": "Pendientes",
+    "pendingToRate": "Pendientes de Calificar",
+    "completed": "Completadas",
+    "completedReviews": "Reseñas Completadas",
+    "noPending": "No tienes reseñas pendientes",
+    "noCompleted": "No tienes reseñas completadas",
+    "rateNow": "Calificar ahora",
+    "submitReview": "Enviar Reseña",
+    "shareFeedback": "Cuéntanos tu experiencia (opcional)",
+    "selectRating": "Por favor selecciona una calificación",
+    "expired": "Expirada",
+    "thankYou": "¡Gracias por tu reseña!",
+    "submitError": "No se pudo enviar la reseña",
+    "reviewSubmitted": "Tu reseña ha sido enviada",
+    "writeReview": "Escribe tu reseña",
+    "yourExperience": "¿Cómo fue tu experiencia?",
+    "noReviews": "Sin reseñas aún",
+    "noReviewsDesc": "Después de completar una cita, podrás dejar una reseña",
+    "establishment": "Establecimiento"
+  },
+  "help": {
+    "title": "Ayuda y Soporte",
+    "quickContact": "Contacto Rápido",
+    "chat": "Chat",
+    "email": "Email",
+    "call": "Llamar",
+    "faq": "Preguntas Frecuentes",
+    "contactUs": "Contáctanos",
+    "reportIssue": "Reportar un Problema",
+    "contactingSupport": "Contactando soporte",
+    "opening": "Abriendo",
+    "resources": "Recursos",
+    "userGuide": "Guía de uso",
+    "termsConditions": "Términos y condiciones",
+    "privacyPolicy": "Política de privacidad",
+    "faqCancelAppointment": "¿Cómo puedo cancelar una cita?",
+    "faqCancelAppointmentAnswer": "Puedes cancelar tu cita desde la sección 'Mis Citas'. Selecciona la cita que deseas cancelar y presiona el botón 'Cancelar'. Ten en cuenta que algunas cancelaciones pueden estar sujetas a políticas del negocio.",
+    "faqPayments": "¿Cómo funcionan los pagos?",
+    "faqPaymentsAnswer": "Esta aplicación no procesa pagos. El pago se realiza directamente en el establecimiento según sus métodos aceptados (efectivo, tarjeta, transferencia).",
+    "faqModifyBooking": "¿Puedo modificar mi reservación?",
+    "faqModifyBookingAnswer": "Sí, puedes modificar tu reservación siempre y cuando sea con anticipación. Ve a 'Mis Citas', selecciona la cita y busca la opción de modificar. La disponibilidad de cambios depende del negocio.",
+    "faqBusinessCancel": "¿Qué hago si el negocio cancela mi cita?",
+    "faqBusinessCancelAnswer": "Si un negocio cancela tu cita, recibirás una notificación inmediata. Podrás reprogramar sin costo adicional o elegir otro establecimiento.",
+    "faqLeaveReview": "¿Cómo dejo una reseña?",
+    "faqLeaveReviewAnswer": "Después de tu visita, recibirás una notificación para dejar una reseña. También puedes ir al perfil del negocio y seleccionar 'Escribir reseña' en cualquier momento."
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización",
+    "section1Title": "1. Información que Recopilamos",
+    "section1Content": "Recopilamos información que usted nos proporciona directamente, incluyendo:\n\n• Nombre y apellidos\n• Dirección de correo electrónico\n• Número de teléfono\n• Dirección física (opcional)\n• Fecha de nacimiento (opcional)\n• Fotografía de perfil (opcional)",
+    "section2Title": "2. Cómo Usamos su Información",
+    "section2Content": "Utilizamos la información recopilada para:\n\n• Gestionar sus reservas y citas\n• Enviar recordatorios y confirmaciones\n• Personalizar su experiencia en la aplicación\n• Comunicarnos con usted sobre promociones y novedades\n• Mejorar nuestros servicios",
+    "section3Title": "3. Compartir Información",
+    "section3Content": "Compartimos su información únicamente con los establecimientos donde realiza reservas, para que puedan brindarle el servicio solicitado. No vendemos ni compartimos su información personal con terceros para fines de marketing.",
+    "section4Title": "4. Seguridad de los Datos",
+    "section4Content": "Implementamos medidas de seguridad técnicas y organizativas para proteger su información personal contra acceso no autorizado, alteración, divulgación o destrucción. Esto incluye:\n\n• Encriptación de datos en tránsito (HTTPS/TLS)\n• Almacenamiento seguro en servidores protegidos\n• Control de acceso basado en roles\n• Auditorías de seguridad regulares",
+    "section5Title": "5. Sus Derechos",
+    "section5Content": "Usted tiene derecho a:\n\n• Acceder a sus datos personales\n• Rectificar información incorrecta\n• Solicitar la eliminación de sus datos\n• Oponerse al procesamiento de sus datos\n• Descargar una copia de sus datos",
+    "section6Title": "6. Política de Cancelación",
+    "section6Content": "Importante: Esta aplicación no procesa pagos. Las políticas de cancelación y reembolso son establecidas por cada establecimiento individualmente. Le recomendamos:\n\n• Cancelar con al menos 24 horas de anticipación\n• Consultar la política específica del establecimiento\n• Algunos establecimientos pueden cobrar por cancelaciones tardías",
+    "section7Title": "7. Cookies y Tecnologías Similares",
+    "section7Content": "Utilizamos almacenamiento local para guardar sus preferencias y mejorar su experiencia. Esto incluye preferencias de idioma, tema (claro/oscuro) y configuraciones de notificaciones.",
+    "section8Title": "8. Cambios a esta Política",
+    "section8Content": "Podemos actualizar esta política de privacidad ocasionalmente. Le notificaremos sobre cualquier cambio significativo a través de la aplicación o por correo electrónico.",
+    "section9Title": "9. Contacto",
+    "section9Content": "Si tiene preguntas sobre esta política de privacidad o sobre cómo manejamos sus datos, puede contactarnos en:",
+    "contactEmail": "Email: privacy@bookwise.app",
+    "contactPhone": "Teléfono: +1 809 555 0000"
+  },
+  "establishments": {
+    "glamStudio": {
+      "description": "Especialistas en cortes modernos, coloraciones personalizadas y tratamientos capilares premium."
+    },
+    "hairArtPro": {
+      "description": "Estilistas certificados en las últimas tendencias. Especialidad en color fantasy y extensiones."
+    },
+    "nailArtStudio": {
+      "description": "Manicure, pedicure y diseños artísticos. Las últimas tendencias en nail art."
+    },
+    "perfectNailsSpa": {
+      "description": "Uñas acrílicas, gel y semipermanente. Ambiente relajante y atención personalizada."
+    },
+    "lashBrowBar": {
+      "description": "Extensiones de pestañas, microblading y diseño de cejas profesional."
+    },
+    "browStudioElite": {
+      "description": "Especialistas en laminado de cejas, lifting de pestañas y tinte."
+    },
+    "beautyLoungeMUA": {
+      "description": "Maquillaje profesional para eventos, novias y sesiones fotográficas."
+    },
+    "glamourBeautyCenter": {
+      "description": "Centro de belleza integral con servicios de maquillaje, peinado y estilismo."
+    },
+    "aestheticMedClinic": {
+      "description": "Tratamientos faciales avanzados, botox, ácido hialurónico y rejuvenecimiento."
+    },
+    "dermaSpa": {
+      "description": "Medicina estética, peelings químicos y tratamientos láser de última generación."
+    },
+    "barberKings": {
+      "description": "Barbería premium para caballeros. Cortes clásicos y modernos, afeitado tradicional."
+    },
+    "gentlemansCut": {
+      "description": "Barbería de estilo clásico con servicios de grooming masculino premium."
+    },
+    "thaiMassage": {
+      "description": "Masajes tailandeses tradicionales, reflexología y aromaterapia."
+    },
+    "relaxRestore": {
+      "description": "Masajes terapéuticos, deportivos y relajantes. Experiencia de spa completa."
+    },
+    "serenitySpa": {
+      "description": "Tu oasis de relajación. Masajes terapéuticos, faciales rejuvenecedores y tratamientos corporales."
+    },
+    "zenWellness": {
+      "description": "Sauna, baño turco, jacuzzi y tratamientos de relajación total."
+    },
+    "smoothWax": {
+      "description": "Depilación con cera, láser y técnicas brasileñas. Resultados profesionales."
+    },
+    "bareBeauty": {
+      "description": "Especialistas en depilación. Técnicas suaves y productos hipoalergénicos."
+    },
+    "inkMasters": {
+      "description": "Tatuajes artísticos, realismo, tradicional y covers. Artistas certificados."
+    },
+    "urbanBodyArt": {
+      "description": "Piercings profesionales y tatuajes personalizados. Estándares de higiene máximos."
+    },
+    "sunGlow": {
+      "description": "Bronceado con cabinas UV y spray tan. Resultados naturales y duraderos."
+    },
+    "bronzeStudio": {
+      "description": "Bronceado sin sol, autobronceantes premium y tratamientos de hidratación."
+    },
+    "recoveryZone": {
+      "description": "Crioterapia, masajes deportivos y recuperación muscular avanzada."
+    },
+    "athleticWellness": {
+      "description": "Centro de recuperación deportiva. Estiramientos, fisio y nutrición."
+    },
+    "physioMed": {
+      "description": "Fisioterapia profesional, rehabilitación y tratamientos especializados."
+    },
+    "restorePhysio": {
+      "description": "Rehabilitación integral, terapia manual y ejercicio terapéutico."
+    },
+    "holisticHealth": {
+      "description": "Medicina alternativa, acupuntura, homeopatía y bienestar integral."
+    },
+    "naturalWellness": {
+      "description": "Naturopatía, nutrición holística y terapias complementarias."
+    },
+    "pawsClaws": {
+      "description": "Peluquería canina y felina. Baño, corte y tratamientos especiales."
+    },
+    "happyPets": {
+      "description": "Grooming profesional para mascotas. Spa, baños medicados y estilismo."
+    },
+    "styleConsultant": {
+      "description": "Asesoría de imagen, personal shopper y consultoría de moda."
+    },
+    "imageStyle": {
+      "description": "Colorimetría personal, análisis de estilo y transformación de imagen."
+    }
+  },
+  "terms": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización",
+    "allRightsReserved": "Todos los derechos reservados.",
+    "contactEmail": "Email: legal@bookwise.app",
+    "section1Title": "1. Aceptación de los Términos",
+    "section1Content": "Al acceder o usar la aplicación Bookwise, aceptas estar sujeto a estos Términos de Servicio. Si no estás de acuerdo con estos términos, por favor no uses nuestros servicios.\n\nEstos términos aplican a todos los usuarios de la app, incluyendo visitantes, clientes y comerciantes.",
+    "section2Title": "2. Descripción del Servicio",
+    "section2Content": "Bookwise proporciona una plataforma que conecta clientes con proveedores de servicios de belleza y bienestar. Facilitamos:\n\n• Reserva y gestión de citas\n• Descubrimiento de negocios y reseñas\n• Comunicación entre clientes y negocios\n• Notificaciones de recordatorio para citas",
+    "section3Title": "3. Cuentas de Usuario",
+    "section3Content": "Para usar ciertas funciones de nuestro servicio, debes crear una cuenta. Eres responsable de:\n\n• Mantener la confidencialidad de tus credenciales\n• Todas las actividades que ocurran bajo tu cuenta\n• Notificarnos inmediatamente de cualquier uso no autorizado\n• Proporcionar información precisa y completa",
+    "section4Title": "4. Reservas y Cancelaciones",
+    "section4Content": "Cuando reservas una cita a través de Bookwise:\n\n• Aceptas las políticas específicas del establecimiento\n• Las cancelaciones deben hacerse con al menos 24 horas de anticipación\n• Las ausencias pueden resultar en restricciones en tu cuenta\n• Los negocios individuales pueden tener políticas adicionales\n\nNota: Bookwise no procesa pagos. Todas las transacciones ocurren directamente con el proveedor del servicio.",
+    "section5Title": "5. Conducta del Usuario",
+    "section5Content": "Aceptas no:\n\n• Violar ninguna ley o regulación aplicable\n• Suplantar a ninguna persona o entidad\n• Enviar información falsa o engañosa\n• Acosar o abusar de proveedores de servicios\n• Intentar manipular reseñas o calificaciones\n• Usar el servicio para cualquier propósito ilegal",
+    "section6Title": "6. Limitación de Responsabilidad",
+    "section6Content": "Bookwise actúa únicamente como intermediario entre clientes y proveedores de servicios. No somos responsables de:\n\n• La calidad de los servicios proporcionados por los negocios\n• Disputas entre clientes y proveedores\n• Lesiones personales o daños a la propiedad\n• Disponibilidad de negocios o cambios de precios",
+    "section7Title": "7. Cambios a los Términos",
+    "section7Content": "Nos reservamos el derecho de modificar estos términos en cualquier momento. El uso continuado del servicio después de los cambios constituye la aceptación de los nuevos términos. Notificaremos a los usuarios sobre cambios significativos a través de la app o por email."
+  },
+  "common_ui": {
+    "viewMore": "Ver más",
+    "tapToChangePhoto": "Toca para cambiar tu foto"
+  },
+  "auth": {
+    "splash": {
+      "loading": "Cargando...",
+      "slogan": "Agenda tu cita al instante sin hacer fila"
+    },
+    "welcome": {
+      "continue": "Continuar",
+      "getStarted": "Comenzar",
+      "termsNote": "Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad",
+      "termsAcceptance": "Al continuar, aceptas nuestros",
+      "termsOfService": "Términos de Servicio",
+      "privacyPolicy": "Política de Privacidad",
+      "and": "y",
+      "acceptTermsError": "Por favor acepta los términos para continuar",
+      "slide1Title": "Reserva Citas Fácilmente",
+      "slide1Desc": "Encuentra y reserva citas en tus establecimientos de belleza y bienestar favoritos en segundos",
+      "slide2Title": "Descubre los Mejores Lugares",
+      "slide2Desc": "Navega por reseñas y calificaciones para encontrar el salón, spa o barbería perfecto para ti",
+      "slide3Title": "Nunca Pierdas una Cita",
+      "slide3Desc": "Recibe recordatorios antes de tus citas para que siempre llegues a tiempo",
+      "slide4Title": "Encuentra Lugares Cerca de Ti",
+      "slide4Desc": "Descubre establecimientos increíbles justo en tu vecindario con nuestras funciones de ubicación"
+    },
+    "login": {
+      "title": "Iniciar sesión o registrarse",
+      "subtitle": "Crea una cuenta o inicia sesión para reservar citas",
+      "continueWith": "Continuar con",
+      "apple": "Apple",
+      "google": "Google",
+      "email": "Email",
+      "or": "O",
+      "enterPhone": "Ingresa tu número de celular",
+      "support": "Soporte",
+      "continueAsGuest": "Continuar como Invitado"
+    },
+    "otp": {
+      "title": "Ingresa el código de 4 dígitos enviado a",
+      "changeNumber": "¿Cambiaste tu número de celular?",
+      "resend": "Reenviar código por SMS",
+      "resendIn": "Reenviar en",
+      "verify": "Verificar",
+      "verifying": "Verificando..."
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "password": "Contraseña",
+      "phone": "Número de celular",
+      "email": "Correo electrónico",
+      "agreeTerms": "Acepto la Política de Privacidad y Términos de Uso",
+      "noMarketing": "No deseo recibir notificaciones de marketing",
+      "continue": "Crear Cuenta",
+      "creating": "Creando cuenta..."
+    },
+    "emailAuth": {
+      "title": "Continuar con Email",
+      "loginTab": "Iniciar Sesión",
+      "signupTab": "Registrarse",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "login": "Iniciar Sesión",
+      "signup": "Registrarse",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "loggingIn": "Iniciando sesión...",
+      "signingUp": "Registrando..."
+    },
+    "biometric": {
+      "enable": "¿Habilitar inicio biométrico?",
+      "description": "Usa tu huella o rostro para iniciar sesión más rápido",
+      "enableButton": "Habilitar",
+      "notNow": "Ahora no"
+    },
+    "errors": {
+      "invalidPhone": "Por favor ingresa un número de teléfono válido",
+      "invalidOtp": "Por favor ingresa el código de verificación completo",
+      "otpFailed": "Verificación fallida. Por favor intenta de nuevo.",
+      "loginFailed": "Error al iniciar sesión. Por favor verifica tus credenciales.",
+      "signupFailed": "Error al registrarse. Por favor intenta de nuevo.",
+      "emailRequired": "El email es requerido",
+      "passwordRequired": "La contraseña es requerida",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "termsRequired": "Debes aceptar los términos para continuar"
+    },
+    "forgotPassword": "Olvidé mi Contraseña",
+    "resetYourPassword": "Restablecer tu Contraseña",
+    "enterEmailToReset": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+    "sendResetLink": "Enviar Enlace",
+    "sending": "Enviando...",
+    "resetEmailSent": "Correo Enviado",
+    "checkInbox": "Revisa tu bandeja de entrada para el enlace de restablecimiento.",
+    "checkYourEmail": "Revisa tu Correo",
+    "resetEmailSentTo": "Hemos enviado un enlace de restablecimiento a",
+    "clickLinkInEmail": "Haz clic en el enlace del correo para restablecer tu contraseña. El enlace expirará en 24 horas.",
+    "sendAgain": "Enviar de Nuevo",
+    "backToLogin": "Volver al Inicio de Sesión",
+    "rememberPassword": "¿Recuerdas tu contraseña?",
+    "signIn": "Iniciar Sesión",
+    "enterEmail": "Por favor ingresa tu correo electrónico",
+    "error": "Error",
+    "resetError": "Error al enviar el correo. Por favor intenta de nuevo.",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "tu@correo.com"
+  },
+  "earlyArrival": {
+    "title": "¿Puedes asistir ahora?",
+    "message": "Tu cita puede adelantarse. ¿Puedes asistir ahora?",
+    "confirmButton": "Sí, puedo asistir",
+    "rejectButton": "No puedo ahora",
+    "confirmedTitle": "Confirmado",
+    "confirmedMessage": "Tu cita ha sido adelantada exitosamente.",
+    "errorConfirming": "Error al confirmar la asistencia anticipada. Por favor intenta de nuevo."
+  }
+}
