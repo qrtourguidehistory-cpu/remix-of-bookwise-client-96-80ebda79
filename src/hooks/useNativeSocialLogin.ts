@@ -87,13 +87,31 @@ export const useNativeSocialLogin = () => {
       const { SocialLogin } = await import('@capgo/capacitor-social-login');
       
       console.log('🔵 Llamando SocialLogin.login() con Google...');
-      const result = await SocialLogin.login({
-        provider: 'google',
-        options: {
-          scopes: ['email', 'profile'],
-          filterByAuthorizedAccounts: false,
-        },
-      });
+      let result;
+      try {
+        result = await SocialLogin.login({
+          provider: 'google',
+          options: {
+            // No pasar scopes explícitos: el plugin añade email/profile/openid por defecto.
+            // Pasar scopes exige modificar MainActivity en Android y puede provocar el error mostrado.
+            filterByAuthorizedAccounts: false,
+          },
+        });
+      } catch (loginError) {
+        const loginErrMsg = loginError instanceof Error ? loginError.message : String(loginError);
+        // Si el plugin rechaza por falta de modificación del MainActivity, reintentar SIN pasar options.scopes
+        if (loginErrMsg.includes('You CANNOT use scopes')) {
+          console.warn('⚠️ SocialLogin rechazó el uso de scopes; reintentando sin scopes...');
+          result = await SocialLogin.login({
+            provider: 'google',
+            options: {
+              filterByAuthorizedAccounts: false,
+            },
+          });
+        } else {
+          throw loginError;
+        }
+      }
       
       console.log('🔵 Resultado de SocialLogin.login():', { 
         hasResult: !!result, 
@@ -128,6 +146,15 @@ export const useNativeSocialLogin = () => {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error('❌ Google Sign-In error:', errorMsg);
       
+      // Mensaje amigable si el plugin rechaza scopes (sincronización/MainActivity)
+      if (errorMsg.includes('You CANNOT use scopes')) {
+        return {
+          error: new Error(
+            'El build actual no permite usar scopes en Google Sign-In. Asegúrate de haber modificado `MainActivity` según la documentación del plugin o evita usar scopes.'
+          ),
+        };
+      }
+
       // Manejar errores específicos
       if (errorMsg.includes('NoCredentialException') || errorMsg.includes('no credentials')) {
         return {
