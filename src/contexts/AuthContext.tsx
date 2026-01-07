@@ -248,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         result = await SocialLogin.login({
           provider: 'google',
           options: {
-            scopes: ['email', 'profile'],
+            // No se pasan scopes explícitos: el plugin añadirá por defecto email/profile/openid.
             // filterByAuthorizedAccounts: false evita NoCredentialException en algunos dispositivos
             filterByAuthorizedAccounts: false,
           },
@@ -259,6 +259,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (loginError) {
         const errorMsg = loginError instanceof Error ? loginError.message : String(loginError);
         console.error('❌ SocialLogin.login() error:', errorMsg);
+        
+        // Si el plugin rechazó el uso de scopes por falta de modificación de MainActivity, reintentar sin scopes
+        if (errorMsg.includes('You CANNOT use scopes')) {
+          console.warn('⚠️ SocialLogin rechazó el uso de scopes; reintentando sin scopes...');
+          try {
+            result = await SocialLogin.login({
+              provider: 'google',
+              options: {
+                filterByAuthorizedAccounts: false,
+              },
+            });
+            console.log('🔵 Step 2: ✅ Reintento SocialLogin.login() sin scopes completado');
+            console.log('🔵 Result keys:', result ? Object.keys(result) : 'null');
+          } catch (retryErr) {
+            const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+            console.error('❌ Reintento sin scopes falló:', retryMsg);
+            if (retryMsg.includes('You CANNOT use scopes')) {
+              return {
+                error: new Error(
+                  'El build actual no permite usar scopes en Google Sign-In. Asegúrate de haber modificado `MainActivity` según la documentación del plugin o evita usar scopes.'
+                ),
+              };
+            }
+            return { error: retryErr as Error };
+          }
+        }
         
         // Errores específicos de Google Credential Manager
         if (errorMsg.includes('NoCredentialException') || errorMsg.includes('no credentials')) {
