@@ -33,7 +33,33 @@ const AuthPage = () => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        toast.error(error.message || 'Failed to sign in with Google');
+        const msg = error.message || 'Failed to sign in with Google';
+        // Detect reauth requirement and fallback to web OAuth deep link
+        if (msg.includes('[16]') || msg.toLowerCase().includes('reauth')) {
+          toast('Se requiere reautenticación; abriendo flujo de Google en navegador...');
+          try {
+            const { supabase } = await import('@/integrations/supabase/client');
+            const redirectTo = 'bookwise://login-callback';
+            const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: { redirectTo, skipBrowserRedirect: true },
+            });
+            if (oauthError) {
+              toast.error(oauthError.message || 'Failed to open Google OAuth fallback');
+            } else if (data?.url) {
+              const { Browser } = await import('@capacitor/browser');
+              await Browser.open({ url: data.url });
+              console.log('🔐 OAuth web fallback abierto');
+            } else {
+              toast.error('No se pudo generar URL de OAuth web');
+            }
+          } catch (fallbackErr) {
+            console.error('Fallback a OAuth web falló:', fallbackErr);
+            toast.error('Fallback a OAuth web falló');
+          }
+        } else {
+          toast.error(msg);
+        }
         setIsLoading(null);
       } else {
         // OAuth flow started - browser will open

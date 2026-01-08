@@ -108,6 +108,25 @@ export const useNativeSocialLogin = () => {
               filterByAuthorizedAccounts: false,
             },
           });
+        } else if (loginErrMsg.includes('[16]') || loginErrMsg.toLowerCase().includes('reauth')) {
+          // Si la cuenta requiere reautenticación (ej: '[16] Account reauth failed'), hacer fallback a OAuth web con deep link
+          console.warn('⚠️ SocialLogin returned account reauth failed; falling back to web OAuth');
+          const redirectTo = 'bookwise://login-callback';
+          const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo, skipBrowserRedirect: true },
+          });
+          if (oauthError) {
+            console.error('❌ Falló fallback OAuth web:', oauthError);
+            throw oauthError;
+          }
+          if (data?.url) {
+            const { Browser } = await import('@capacitor/browser');
+            await Browser.open({ url: data.url });
+            // Result handled via browser redirect
+            return { error: null };
+          }
+          throw new Error('No se pudo generar URL de OAuth web para reintentar');
         } else {
           throw loginError;
         }
