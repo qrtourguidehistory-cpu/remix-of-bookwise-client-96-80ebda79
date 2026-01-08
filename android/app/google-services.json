@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "844501937878",
+    "project_id": "bookwise-cliente",
+    "storage_bucket": "bookwise-cliente.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844501937878:android:ee5514c9148f9841c62377",
+        "android_client_info": {
+          "package_name": "com.bookwise.client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2ho3j0t2dvNUBvQn9HMeMAPuAv7E_APM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
