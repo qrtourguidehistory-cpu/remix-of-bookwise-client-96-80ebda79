@@ -287,6 +287,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // Errores específicos de Google Credential Manager
+        // Manejo: Cuenta requiere reautenticación (ApiException code 16) — fallback a OAuth web con deep link
+        if (errorMsg.includes('[16]') || errorMsg.toLowerCase().includes('reauth')) {
+          console.warn('⚠️ Google native sign-in requires reauthentication; falling back to web OAuth (deep link)');
+          try {
+            const redirectTo = 'bookwise://login-callback';
+            const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: { redirectTo, skipBrowserRedirect: true },
+            });
+            if (oauthError) {
+              console.error('❌ Falló fallback OAuth web:', oauthError);
+              return { error: oauthError as Error };
+            }
+            if (data?.url) {
+              const { Browser } = await import('@capacitor/browser');
+              await Browser.open({ url: data.url });
+              return { error: null };
+            }
+            return { error: new Error('No se pudo generar URL de OAuth web para reintentar') };
+          } catch (fallbackErr) {
+            console.error('❌ Fallback a OAuth web falló:', fallbackErr);
+            return { error: fallbackErr as Error };
+          }
+        }
+
         if (errorMsg.includes('NoCredentialException') || errorMsg.includes('no credentials')) {
           return {
             error: new Error(
