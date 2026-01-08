@@ -40,7 +40,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const GOOGLE_WEB_CLIENT_ID = '762901353486-ag4dldcdshuolrtq3jp5suo071ja86id.apps.googleusercontent.com';
+const GOOGLE_WEB_CLIENT_ID = '762901353486-v2vvtk3oskg0t8rd58la8lums0tb87sa.apps.googleusercontent.com';
 
 let googleSocialLoginInit: Promise<void> | null = null;
 const ensureGoogleSocialLoginInitialized = async () => {
