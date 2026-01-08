@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import { EarlyArrivalModal } from "./EarlyArrivalModal";
 import { supabase } from "@/integrations/supabase/client";
 import { respondToEarlyArrivalRequest } from "@/lib/earlyArrivalService";
