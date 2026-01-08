@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -512,31 +512,47 @@ export function useAppointments() {
     }
   };
 
+  // Use ref for channel to ensure proper cleanup
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelIdRef = useRef<string>(`appointments-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+
   useEffect(() => {
     fetchAppointments();
 
+    // Cleanup previous channel if exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    // Create unique channel ID to prevent duplicates
+    const uniqueChannelId = `appointments-${user?.id || 'anon'}-${Date.now()}`;
+    channelIdRef.current = uniqueChannelId;
+
     // Subscribe to realtime changes for appointments
-    // Listen to all appointment changes, fetchAppointments already filters by user
     const channel = supabase
-      .channel("appointments-changes")
+      .channel(uniqueChannelId)
       .on(
         "postgres_changes",
         { 
-          event: "*", // INSERT, UPDATE, DELETE
+          event: "*",
           schema: "public", 
           table: "appointments"
         },
         (payload) => {
           console.log("Appointment changed:", payload);
-          // Refetch appointments when any appointment changes
-          // fetchAppointments already filters by user_id/client_email
           fetchAppointments();
         }
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user?.id, profile?.email, fetchAppointments]);
 
