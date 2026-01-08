@@ -13,6 +13,7 @@ import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { useThemeInitializer } from "@/hooks/useThemeInitializer";
 import { Loader2 } from "lucide-react";
 import { EarlyArrivalHandler } from "@/components/appointments/EarlyArrivalHandler";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy load all pages for better performance
 const SplashScreen = lazy(() => import("./pages/auth/SplashScreen"));
@@ -75,8 +76,9 @@ const NativeNavigationHandler = ({ children }: { children: React.ReactNode }) =>
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeInitializer>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeInitializer>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -124,7 +126,8 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </ThemeInitializer>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

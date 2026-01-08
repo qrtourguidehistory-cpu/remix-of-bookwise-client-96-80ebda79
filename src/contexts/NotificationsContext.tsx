@@ -286,29 +286,38 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
     channelRef.current = channel;
 
-    // Also refetch when window gains focus or becomes visible (user comes back to app)
+    // Debounce focus/visibility handlers to prevent excessive fetches
+    let focusDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const DEBOUNCE_MS = 2000; // 2 seconds minimum between fetches
+    
     const handleFocus = () => {
+      if (focusDebounceTimer) return;
       console.log("🔔 [NotificationsContext] Window focused, refetching notifications");
-      // Use setTimeout to debounce rapid focus events
-      setTimeout(() => fetchNotifications(), 100);
+      focusDebounceTimer = setTimeout(() => {
+        fetchNotifications();
+        focusDebounceTimer = null;
+      }, 500);
     };
     
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        if (focusDebounceTimer) return;
         console.log("🔔 [NotificationsContext] Page became visible, refetching notifications");
-        // Use setTimeout to debounce rapid visibility changes
-        setTimeout(() => fetchNotifications(), 100);
+        focusDebounceTimer = setTimeout(() => {
+          fetchNotifications();
+          focusDebounceTimer = null;
+        }, 500);
       }
     };
     
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Also refetch periodically (every 30 seconds) to catch any missed realtime events
+    // Reduce polling frequency since we have realtime - only as backup
     const intervalId = setInterval(() => {
-      console.log("🔔 [NotificationsContext] Periodic refetch");
+      console.log("🔔 [NotificationsContext] Periodic refetch (backup)");
       fetchNotifications();
-    }, 30000); // 30 seconds
+    }, 120000); // 2 minutes (reduced from 30 seconds)
 
     return () => {
       if (channelRef.current) {
@@ -318,6 +327,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(intervalId);
+      if (focusDebounceTimer) {
+        clearTimeout(focusDebounceTimer);
+      }
     };
   }, [user?.id, fetchNotifications]);
 
