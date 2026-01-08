@@ -57,14 +57,11 @@ const MapPage = () => {
   const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<BusinessMarker[]>([]); // Use ref for cleanup
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [markers, setMarkers] = useState<BusinessMarker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [apiKey] = useState(() => {
-    // Get API key from Supabase Edge Functions secrets (fetched at runtime)
-    return "";
-  });
 
   // Fetch businesses from Supabase ONCE
   const fetchBusinesses = useCallback(async () => {
@@ -207,6 +204,7 @@ const MapPage = () => {
           };
         });
 
+        markersRef.current = markersWithInstances; // Store in ref for cleanup
         setMarkers(markersWithInstances);
 
         // Fit bounds to show all markers
@@ -228,9 +226,18 @@ const MapPage = () => {
 
     initMap();
 
-    // Cleanup
+    // Cleanup - use ref to avoid stale closure
     return () => {
-      markers.forEach((m) => m.marker?.setMap(null));
+      markersRef.current.forEach((m) => {
+        if (m.marker) {
+          // Clear event listeners before removing marker
+          if (window.google?.maps?.event) {
+            window.google.maps.event.clearInstanceListeners(m.marker);
+          }
+          m.marker.setMap(null);
+        }
+      });
+      markersRef.current = [];
     };
   }, [fetchBusinesses, fetchApiKey]);
 

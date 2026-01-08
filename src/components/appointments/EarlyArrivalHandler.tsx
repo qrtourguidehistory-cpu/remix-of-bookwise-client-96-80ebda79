@@ -1,13 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { EarlyArrivalModal } from "./EarlyArrivalModal";
 import { supabase } from "@/integrations/supabase/client";
 import { respondToEarlyArrivalRequest } from "@/lib/earlyArrivalService";
-import { useAppointments } from "@/hooks/useAppointments";
+
+// Direct function to confirm early arrival without using the full hook
+const confirmEarlyArrivalDirect = async (appointmentId: string) => {
+  try {
+    const { error } = await supabase
+      .from("appointments")
+      .update({ early_confirmed: true })
+      .eq("id", appointmentId);
+    
+    if (error) throw error;
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error confirming early arrival:", err);
+    return { success: false, error: err.message };
+  }
+};
 
 export const EarlyArrivalHandler = () => {
   const { notifications, markAsRead, refetch } = useNotifications();
-  const { confirmEarlyArrival } = useAppointments();
   const [pendingEarlyArrival, setPendingEarlyArrival] = useState<{
     appointmentId: string;
     notificationId: string;
@@ -60,7 +74,7 @@ export const EarlyArrivalHandler = () => {
     checkAndShowEarlyArrival();
   }, [notifications]);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     if (!pendingEarlyArrival) return;
     
     try {
@@ -73,17 +87,14 @@ export const EarlyArrivalHandler = () => {
         
         if (!result.success) {
           console.error("Error responding to early arrival request:", result.error);
-          // Continue anyway to update the appointment
         }
       }
       
-      // Update the appointment to confirm early arrival
-      const result = await confirmEarlyArrival(pendingEarlyArrival.appointmentId);
+      // Update the appointment to confirm early arrival (direct call, no hook)
+      const result = await confirmEarlyArrivalDirect(pendingEarlyArrival.appointmentId);
       
       if (result.success) {
-        // Mark notification as read
         markAsRead(pendingEarlyArrival.notificationId);
-        // Refetch notifications to update the list
         refetch();
         setPendingEarlyArrival(null);
       } else {
@@ -91,15 +102,14 @@ export const EarlyArrivalHandler = () => {
       }
     } catch (error) {
       console.error("Error confirming early arrival:", error);
-      throw error; // Re-throw to let modal handle the error
+      throw error;
     }
-  };
+  }, [pendingEarlyArrival, markAsRead, refetch]);
 
-  const handleReject = async () => {
+  const handleReject = useCallback(async () => {
     if (!pendingEarlyArrival) return;
     
     try {
-      // If there's a request_id, respond to it
       if (pendingEarlyArrival.requestId) {
         const result = await respondToEarlyArrivalRequest(
           pendingEarlyArrival.requestId,
@@ -111,15 +121,13 @@ export const EarlyArrivalHandler = () => {
         }
       }
       
-      // Mark notification as read even if rejected
       markAsRead(pendingEarlyArrival.notificationId);
-      // Refetch notifications to update the list
       refetch();
       setPendingEarlyArrival(null);
     } catch (error) {
       console.error("Error rejecting early arrival:", error);
     }
-  };
+  }, [pendingEarlyArrival, markAsRead, refetch]);
 
   if (!pendingEarlyArrival) return null;
 
@@ -132,4 +140,3 @@ export const EarlyArrivalHandler = () => {
     />
   );
 };
-
