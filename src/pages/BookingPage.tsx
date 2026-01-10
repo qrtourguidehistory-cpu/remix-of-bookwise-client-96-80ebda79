@@ -955,7 +955,10 @@ const BookingPage = () => {
       </main>
 
       {/* Confirm Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-elevated z-50">
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-elevated z-50"
+        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+      >
         <div className="max-w-lg mx-auto">
           <Button
             variant="coral"
