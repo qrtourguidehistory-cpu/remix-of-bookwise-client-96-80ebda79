@@ -69,16 +69,11 @@ const WelcomeScreen = () => {
       <div className="relative z-10 min-h-screen min-h-dvh flex flex-col">
         {/* Header */}
         <div 
-          className="flex justify-between items-center p-6"
-          style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top, 0px))' }}
+          className="flex justify-between items-center px-6 pt-2"
+          style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex items-center gap-2">
-            <img 
-              src="/favicon.svg" 
-              alt="Bookwise Logo" 
-              className="w-10 h-10 rounded-xl"
-            />
-            <span className="text-white font-semibold text-xl">Bookwise</span>
+            <span className="text-white font-bold text-2xl">Mí Turnow</span>
           </div>
           <Button
             variant="ghost"
