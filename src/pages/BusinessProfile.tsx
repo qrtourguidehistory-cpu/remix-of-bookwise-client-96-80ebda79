@@ -368,7 +368,10 @@ const BusinessProfile = () => {
 
       {/* Booking Footer */}
       {selectedServices.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-elevated z-50 animate-slide-up">
+        <div 
+          className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-elevated z-50 animate-slide-up"
+          style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+        >
           <div className="max-w-lg mx-auto">
             <div className="flex items-center justify-between mb-3">
               <div>

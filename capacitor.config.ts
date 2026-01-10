@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.bookwise.client',
-  appName: 'Bookwise',
+  appName: 'Mí Turnow',
   webDir: 'dist'
 };
 

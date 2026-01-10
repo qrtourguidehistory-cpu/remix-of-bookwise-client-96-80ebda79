@@ -196,3 +196,16 @@
     transform: scale(1);
   }
 }
+
+/* Safe area utility classes for mobile devices with navigation bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.fixed-bottom-safe {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
