@@ -16,7 +16,7 @@ const WelcomeScreen = () => {
   const slides = [
     {
       icon: Calendar,
-      title: t('auth.welcome.slide1Title', 'Reserva en Segundos'),
+      title: t('auth.welcome.slide1Title', 'Reserva Citas Fácilmente'),
       description: t('auth.welcome.slide1Description', 'Encuentra y reserva citas con tus negocios favoritos en solo unos toques')
     },
     {
@@ -50,8 +50,11 @@ const WelcomeScreen = () => {
 
   return (
     <div 
-      className="min-h-screen min-h-dvh relative overflow-hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="h-screen h-dvh relative overflow-hidden flex flex-col"
+      style={{ 
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
     >
       {/* Background Image with Overlay */}
       <div 
@@ -66,26 +69,22 @@ const WelcomeScreen = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen min-h-dvh flex flex-col">
-        {/* Header */}
-        <div 
-          className="flex justify-between items-center px-6 pt-2"
-          style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))' }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-white font-bold text-2xl">Mí Turnow</span>
-          </div>
+      <div className="relative z-10 flex-1 flex flex-col">
+        {/* Header - compact */}
+        <div className="flex justify-between items-center px-4 py-2">
+          <span className="text-white font-bold text-xl">Mí Turnow</span>
           <Button
             variant="ghost"
+            size="sm"
             onClick={handleSkip}
-            className="text-white/80 hover:text-white hover:bg-white/10"
+            className="text-white/80 hover:text-white hover:bg-white/10 h-8 px-3"
           >
             {t('common.skip', 'Omitir')}
           </Button>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8">
+        {/* Main Content - takes remaining space */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -96,27 +95,27 @@ const WelcomeScreen = () => {
               className="text-center"
             >
               {/* Icon */}
-              <div className="mx-auto mb-8 w-24 h-24 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/20">
+              <div className="mx-auto mb-6 w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
                 {(() => {
                   const Icon = slides[currentSlide].icon;
-                  return <Icon className="w-12 h-12 text-white" />;
+                  return <Icon className="w-10 h-10 text-white" />;
                 })()}
               </div>
 
               {/* Title */}
-              <h2 className="text-3xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-white mb-3">
                 {slides[currentSlide].title}
               </h2>
 
               {/* Description */}
-              <p className="text-white/70 text-lg max-w-xs mx-auto">
+              <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
                 {slides[currentSlide].description}
               </p>
             </motion.div>
           </AnimatePresence>
 
           {/* Dots Indicator */}
-          <div className="flex gap-2 mt-12">
+          <div className="flex gap-2 mt-8">
             {slides.map((_, index) => (
               <button
                 key={index}
@@ -131,23 +130,17 @@ const WelcomeScreen = () => {
           </div>
         </div>
 
-        {/* Bottom Section - Always visible */}
-        <div 
-          className="p-6 space-y-4"
-          style={{ 
-            paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
-            paddingTop: 'env(safe-area-inset-top, 0px)'
-          }}
-        >
-          {/* Terms Checkbox - Always visible */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+        {/* Bottom Section - fixed height */}
+        <div className="px-4 pb-4 space-y-3">
+          {/* Terms Checkbox */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20">
             <label className="flex items-start gap-3 cursor-pointer">
               <Checkbox
                 checked={acceptedTerms}
                 onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
                 className="mt-0.5 border-white/50 data-[state=checked]:bg-black data-[state=checked]:border-black"
               />
-              <span className="text-sm text-white/80 leading-relaxed">
+              <span className="text-sm text-white/80 leading-snug">
                 {t('auth.welcome.termsText', 'Al continuar, aceptas nuestros')}{' '}
                 <button
                   onClick={(e) => {
@@ -176,7 +169,7 @@ const WelcomeScreen = () => {
           <Button
             onClick={handleContinue}
             disabled={!acceptedTerms}
-            className="w-full h-14 bg-black hover:bg-black/80 text-white font-semibold text-lg rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-black hover:bg-black/80 text-white font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentSlide === slides.length - 1 
               ? t('auth.welcome.getStarted', 'Comenzar') 
