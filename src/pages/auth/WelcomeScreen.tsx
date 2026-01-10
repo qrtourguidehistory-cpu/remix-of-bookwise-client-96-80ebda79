@@ -69,26 +69,29 @@ const WelcomeScreen = () => {
           paddingBottom: 'env(safe-area-inset-bottom)'
         }}
       >
-        {/* Header - minimal */}
-        <div className="flex justify-between items-center px-4 h-12">
-          {/* Animated App Name */}
+        {/* Header - with prominent animated app name */}
+        <div className="flex justify-between items-center px-4 py-3">
+          {/* Animated App Name - Large & Dynamic */}
           <motion.div
             className="flex items-center"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, x: -20, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <motion.span 
-              className="text-white font-extrabold text-2xl tracking-tight"
+              className="text-white font-black text-4xl tracking-tight drop-shadow-2xl"
               animate={{ 
                 textShadow: [
-                  '0 0 10px rgba(255,255,255,0.5)',
-                  '0 0 20px rgba(249,115,22,0.8)',
-                  '0 0 10px rgba(255,255,255,0.5)'
-                ]
+                  '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(249,115,22,0.4)',
+                  '0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(249,115,22,0.6)',
+                  '0 0 20px rgba(255,255,255,0.5), 0 0 50px rgba(251,191,36,0.5)',
+                  '0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(249,115,22,0.6)',
+                  '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(249,115,22,0.4)'
+                ],
+                scale: [1, 1.02, 1, 1.02, 1]
               }}
               transition={{ 
-                duration: 2,
+                duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
