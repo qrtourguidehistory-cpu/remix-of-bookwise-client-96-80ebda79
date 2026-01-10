@@ -61,7 +61,7 @@ const TermsOfServicePage = () => {
         </section>
 
         <section className="text-center pt-4 border-t border-border">
-          <p className="text-sm text-muted-foreground">© 2024 Bookwise. {t("terms.allRightsReserved")}</p>
+          <p className="text-sm text-muted-foreground">© 2024 Mí Turnow. {t("terms.allRightsReserved")}</p>
           <p className="text-sm text-muted-foreground mt-1">{t("terms.contactEmail")}</p>
         </section>
       </main>

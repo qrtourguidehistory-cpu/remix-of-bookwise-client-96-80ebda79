@@ -1,6 +1,6 @@
 {
-  "name": "Bookwise - Reserva tu cita de belleza",
-  "short_name": "Bookwise",
+  "name": "Mí Turnow - Reserva tu cita de belleza",
+  "short_name": "Mí Turnow",
   "description": "Encuentra y reserva citas en los mejores salones de belleza, spas y barberías cerca de ti. Reserva online fácil y rápido.",
   "start_url": "/",
   "display": "standalone",
@@ -47,4 +47,3 @@
     }
   ]
 }
-

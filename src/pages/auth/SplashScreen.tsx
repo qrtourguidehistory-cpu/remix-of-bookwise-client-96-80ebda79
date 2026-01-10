@@ -53,11 +53,11 @@ const SplashScreen = () => {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="mb-8"
       >
-        <div className="w-28 h-28 bg-slate-900 rounded-3xl flex items-center justify-center shadow-2xl">
-          <span className="text-white text-5xl font-bold">B</span>
+        <div className="w-28 h-28 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-2xl">
+          <span className="text-white text-3xl font-bold">MT</span>
         </div>
         {/* Shadow effect below logo */}
-        <div className="w-20 h-3 mx-auto mt-4 bg-slate-200 rounded-full blur-md" />
+        <div className="w-20 h-3 mx-auto mt-4 bg-orange-200 rounded-full blur-md" />
       </motion.div>
 
       {/* App Name */}
@@ -67,7 +67,7 @@ const SplashScreen = () => {
         transition={{ delay: 0.3, duration: 0.5 }}
         className="text-slate-900 text-4xl font-bold mb-3"
       >
-        Bookwise
+        Mí Turnow
       </motion.h1>
 
       {/* Slogan */}
