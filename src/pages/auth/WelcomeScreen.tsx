@@ -49,13 +49,7 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <div 
-      className="h-screen h-dvh relative overflow-hidden flex flex-col"
-      style={{ 
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)'
-      }}
-    >
+    <div className="fixed inset-0 overflow-hidden flex flex-col">
       {/* Background Image with Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -64,27 +58,56 @@ const WelcomeScreen = () => {
           backgroundPosition: 'center 30%'
         }}
       >
-        {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col">
-        {/* Header - compact */}
-        <div className="flex justify-between items-center px-4 py-2">
-          <span className="text-white font-bold text-xl">Mí Turnow</span>
+      {/* Content - uses safe areas */}
+      <div 
+        className="relative z-10 flex-1 flex flex-col"
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        }}
+      >
+        {/* Header - minimal */}
+        <div className="flex justify-between items-center px-4 h-12">
+          {/* Animated App Name */}
+          <motion.div
+            className="flex items-center"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.span 
+              className="text-white font-extrabold text-2xl tracking-tight"
+              animate={{ 
+                textShadow: [
+                  '0 0 10px rgba(255,255,255,0.5)',
+                  '0 0 20px rgba(249,115,22,0.8)',
+                  '0 0 10px rgba(255,255,255,0.5)'
+                ]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              Mí Turnow
+            </motion.span>
+          </motion.div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSkip}
-            className="text-white/80 hover:text-white hover:bg-white/10 h-8 px-3"
+            className="text-white/80 hover:text-white hover:bg-white/10 h-8 px-3 text-sm"
           >
             {t('common.skip', 'Omitir')}
           </Button>
         </div>
 
-        {/* Main Content - takes remaining space */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
+        {/* Main Content - flexible center */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -95,34 +118,34 @@ const WelcomeScreen = () => {
               className="text-center"
             >
               {/* Icon */}
-              <div className="mx-auto mb-6 w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+              <div className="mx-auto mb-4 w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
                 {(() => {
                   const Icon = slides[currentSlide].icon;
-                  return <Icon className="w-10 h-10 text-white" />;
+                  return <Icon className="w-8 h-8 text-white" />;
                 })()}
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-white mb-3">
+              <h2 className="text-xl font-bold text-white mb-2">
                 {slides[currentSlide].title}
               </h2>
 
               {/* Description */}
-              <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
+              <p className="text-white/70 text-sm max-w-xs mx-auto leading-relaxed">
                 {slides[currentSlide].description}
               </p>
             </motion.div>
           </AnimatePresence>
 
           {/* Dots Indicator */}
-          <div className="flex gap-2 mt-8">
+          <div className="flex gap-2 mt-6">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentSlide
-                    ? 'w-8 bg-white'
+                    ? 'w-6 bg-white'
                     : 'w-2 bg-white/40'
                 }`}
               />
@@ -130,8 +153,8 @@ const WelcomeScreen = () => {
           </div>
         </div>
 
-        {/* Bottom Section - fixed height */}
-        <div className="px-4 pb-4 space-y-3">
+        {/* Bottom Section - compact */}
+        <div className="px-4 pb-3 space-y-2">
           {/* Terms Checkbox */}
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20">
             <label className="flex items-start gap-3 cursor-pointer">
@@ -140,7 +163,7 @@ const WelcomeScreen = () => {
                 onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
                 className="mt-0.5 border-white/50 data-[state=checked]:bg-black data-[state=checked]:border-black"
               />
-              <span className="text-sm text-white/80 leading-snug">
+              <span className="text-xs text-white/80 leading-snug">
                 {t('auth.welcome.termsText', 'Al continuar, aceptas nuestros')}{' '}
                 <button
                   onClick={(e) => {
@@ -169,12 +192,12 @@ const WelcomeScreen = () => {
           <Button
             onClick={handleContinue}
             disabled={!acceptedTerms}
-            className="w-full h-12 bg-black hover:bg-black/80 text-white font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-11 bg-black hover:bg-black/80 text-white font-semibold text-sm rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentSlide === slides.length - 1 
               ? t('auth.welcome.getStarted', 'Comenzar') 
               : t('common.continue', 'Continuar')}
-            <ChevronRight className="ml-2 h-5 w-5" />
+            <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
