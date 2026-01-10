@@ -71,33 +71,48 @@ const WelcomeScreen = () => {
       >
         {/* Header - with prominent animated app name */}
         <div className="flex justify-between items-center px-4 py-3">
-          {/* Animated App Name - Large & Dynamic */}
+          {/* Animated App Name - Letter by Letter */}
           <motion.div
             className="flex items-center"
-            initial={{ opacity: 0, x: -20, scale: 0.8 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
           >
-            <motion.span 
-              className="text-white font-black text-4xl tracking-tight drop-shadow-2xl"
-              animate={{ 
-                textShadow: [
-                  '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(249,115,22,0.4)',
-                  '0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(249,115,22,0.6)',
-                  '0 0 20px rgba(255,255,255,0.5), 0 0 50px rgba(251,191,36,0.5)',
-                  '0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(249,115,22,0.6)',
-                  '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(249,115,22,0.4)'
-                ],
-                scale: [1, 1.02, 1, 1.02, 1]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              Mí Turnow
-            </motion.span>
+            <div className="flex">
+              {"Mí Turnow".split("").map((letter, index) => (
+                <motion.span
+                  key={index}
+                  className="text-white font-black text-4xl tracking-tight drop-shadow-lg"
+                  style={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    display: 'inline-block'
+                  }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: [0, -8, 0],
+                    rotate: [0, -3, 3, 0]
+                  }}
+                  transition={{
+                    opacity: { duration: 0.3, delay: index * 0.08 },
+                    y: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: index * 0.15,
+                      ease: "easeInOut"
+                    },
+                    rotate: {
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: index * 0.1,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
+                  {letter === " " ? "\u00A0" : letter}
+                </motion.span>
+              ))}
+            </div>
           </motion.div>
           <Button
             variant="ghost"
