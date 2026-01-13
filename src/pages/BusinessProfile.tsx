@@ -26,16 +26,54 @@ const BusinessProfile = () => {
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
+  // DEBUG: Log establishment data
+  console.log('🔍 BusinessProfile - ESTABLISHMENT DATA:', {
+    id: establishment?.id,
+    name: establishment?.name,
+    temporarily_closed: establishment?.temporarily_closed,
+    closed_until: establishment?.closed_until,
+    fullEstablishment: establishment
+  });
+
   // Check if business is temporarily closed
   const isTemporarilyClosed = useMemo(() => {
-    if (!establishment) return false;
-    if (!establishment.temporarily_closed) return false;
-    if (!establishment.closed_until) return establishment.temporarily_closed;
+    console.log('🔍 BusinessProfile - Checking temporarily closed:', {
+      hasEstablishment: !!establishment,
+      temporarily_closed: establishment?.temporarily_closed,
+      closed_until: establishment?.closed_until,
+      type_temporarily_closed: typeof establishment?.temporarily_closed,
+      type_closed_until: typeof establishment?.closed_until
+    });
+    
+    if (!establishment) {
+      console.log('❌ No establishment');
+      return false;
+    }
+    if (!establishment.temporarily_closed) {
+      console.log('❌ temporarily_closed is falsy:', establishment.temporarily_closed);
+      return false;
+    }
+    if (!establishment.closed_until) {
+      console.log('⚠️ No closed_until, using temporarily_closed value:', establishment.temporarily_closed);
+      return establishment.temporarily_closed;
+    }
     
     const closedUntilDate = new Date(establishment.closed_until);
     const now = new Date();
-    return establishment.temporarily_closed === true && closedUntilDate > now;
+    const isClosed = establishment.temporarily_closed === true && closedUntilDate > now;
+    console.log('✅ Is temporarily closed?', isClosed, {
+      temporarily_closed: establishment.temporarily_closed,
+      closed_until: establishment.closed_until,
+      closedUntilDate: closedUntilDate.toISOString(),
+      now: now.toISOString(),
+      comparison: closedUntilDate > now
+    });
+    return isClosed;
   }, [establishment]);
+
+  // TEMPORARY: Force banner to always show for testing
+  const FORCE_BANNER = true;
+  const displayTemporarilyClosed = FORCE_BANNER || isTemporarilyClosed;
 
   // Get reopening time if temporarily closed
   const reopeningTime = useMemo(() => {
@@ -278,15 +316,24 @@ const BusinessProfile = () => {
           )}
 
           <div className="flex items-center gap-4 text-sm">
-            {isTemporarilyClosed ? (
-              <div className="flex flex-col gap-1 w-full">
+            {displayTemporarilyClosed ? (
+              <div className="flex flex-col gap-1 w-full bg-warning/10 p-3 rounded-lg border border-warning/20">
                 <span className="flex items-center gap-1.5 text-destructive font-semibold">
                   <Clock className="w-4 h-4" strokeWidth={2} />
                   {t("business.temporarilyClosed")}
                 </span>
-                {reopeningTime && (
+                {reopeningTime ? (
                   <span className="text-muted-foreground text-xs">
                     {t("business.reopensAt")} {reopeningTime}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-xs">
+                    {t("business.reopensAt")} --:--
+                  </span>
+                )}
+                {FORCE_BANNER && (
+                  <span className="text-xs text-muted-foreground italic">
+                    (Banner forzado para testing)
                   </span>
                 )}
               </div>
@@ -431,7 +478,7 @@ const BusinessProfile = () => {
                 </div>
               </div>
             </div>
-            {isTemporarilyClosed ? (
+            {displayTemporarilyClosed ? (
               <Button variant="coral" size="xl" className="w-full" disabled>
                 {t("business.temporarilyClosed")}
               </Button>

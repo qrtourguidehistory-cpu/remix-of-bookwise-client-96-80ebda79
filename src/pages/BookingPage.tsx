@@ -186,15 +186,48 @@ const BookingPage = () => {
   const { establishment, staff: dbStaff, loading, error } = useEstablishment(id);
   const establishmentName = establishment?.name || "";
   
+  // DEBUG: Log establishment data at render
+  console.log('🔍 BookingPage - ESTADO CIERRE:', {
+    establishment_id: establishment?.id,
+    establishment_name: establishment?.name,
+    temporarily_closed: establishment?.temporarily_closed,
+    closed_until: establishment?.closed_until,
+    type_temporarily_closed: typeof establishment?.temporarily_closed,
+    type_closed_until: typeof establishment?.closed_until,
+    fullEstablishment: establishment
+  });
+  
   // Check if business is temporarily closed
   const isTemporarilyClosed = useMemo(() => {
-    if (!establishment) return false;
-    if (!establishment.temporarily_closed) return false;
-    if (!establishment.closed_until) return establishment.temporarily_closed;
+    console.log('🔍 BookingPage - Checking temporarily closed:', {
+      hasEstablishment: !!establishment,
+      temporarily_closed: establishment?.temporarily_closed,
+      closed_until: establishment?.closed_until
+    });
+    
+    if (!establishment) {
+      console.log('❌ BookingPage - No establishment');
+      return false;
+    }
+    if (!establishment.temporarily_closed) {
+      console.log('❌ BookingPage - temporarily_closed is falsy:', establishment.temporarily_closed);
+      return false;
+    }
+    if (!establishment.closed_until) {
+      console.log('⚠️ BookingPage - No closed_until, using temporarily_closed value:', establishment.temporarily_closed);
+      return establishment.temporarily_closed;
+    }
     
     const closedUntilDate = new Date(establishment.closed_until);
     const now = new Date();
-    return establishment.temporarily_closed === true && closedUntilDate > now;
+    const isClosed = establishment.temporarily_closed === true && closedUntilDate > now;
+    console.log('✅ BookingPage - Is temporarily closed?', isClosed, {
+      temporarily_closed: establishment.temporarily_closed,
+      closed_until: establishment.closed_until,
+      closedUntilDate: closedUntilDate.toISOString(),
+      now: now.toISOString()
+    });
+    return isClosed;
   }, [establishment]);
 
   // Get reopening time if temporarily closed
