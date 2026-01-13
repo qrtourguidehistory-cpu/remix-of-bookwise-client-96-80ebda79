@@ -14,6 +14,7 @@ import { useThemeInitializer } from "@/hooks/useThemeInitializer";
 import { Loader2 } from "lucide-react";
 import { EarlyArrivalHandler } from "@/components/appointments/EarlyArrivalHandler";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { FCMInitializer } from "@/components/notifications/FCMInitializer";
 
 // Lazy load all pages for better performance
 const SplashScreen = lazy(() => import("./pages/auth/SplashScreen"));
@@ -85,42 +86,44 @@ const App = () => (
           <BrowserRouter>
             <NativeNavigationHandler>
               <AuthProvider>
-                <AuthRedirectHandler />
-                <NotificationsProvider>
-                  <EarlyArrivalHandler />
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      {/* Public Auth Routes */}
-                      <Route path="/splash" element={<SplashScreen />} />
-                      <Route path="/welcome" element={<WelcomeScreen />} />
-                      <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/auth/verify" element={<OTPVerification />} />
-                      <Route path="/auth/register" element={<RegisterPage />} />
-                      <Route path="/auth/email" element={<EmailAuthPage />} />
-                      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+                <FCMInitializer>
+                  <AuthRedirectHandler />
+                  <NotificationsProvider>
+                    <EarlyArrivalHandler />
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* Public Auth Routes */}
+                        <Route path="/splash" element={<SplashScreen />} />
+                        <Route path="/welcome" element={<WelcomeScreen />} />
+                        <Route path="/auth" element={<AuthPage />} />
+                        <Route path="/auth/verify" element={<OTPVerification />} />
+                        <Route path="/auth/register" element={<RegisterPage />} />
+                        <Route path="/auth/email" element={<EmailAuthPage />} />
+                        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
 
-                      {/* Protected Routes */}
-                      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                      <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-                      <Route path="/business/:id" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
-                      <Route path="/booking/:id" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-                      <Route path="/appointments" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
-                      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                      <Route path="/profile/personal" element={<ProtectedRoute><PersonalInfoPage /></ProtectedRoute>} />
-                      <Route path="/profile/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-                      <Route path="/profile/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-                      <Route path="/profile/help" element={<ProtectedRoute><HelpSupportPage /></ProtectedRoute>} />
-                      <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
-                      <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
-                      <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
-                      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                      <Route path="/terms" element={<TermsOfServicePage />} />
-                      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-                      <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                </NotificationsProvider>
+                        {/* Protected Routes */}
+                        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                        <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+                        <Route path="/business/:id" element={<ProtectedRoute><BusinessProfile /></ProtectedRoute>} />
+                        <Route path="/booking/:id" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
+                        <Route path="/appointments" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
+                        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                        <Route path="/profile/personal" element={<ProtectedRoute><PersonalInfoPage /></ProtectedRoute>} />
+                        <Route path="/profile/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+                        <Route path="/profile/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                        <Route path="/profile/help" element={<ProtectedRoute><HelpSupportPage /></ProtectedRoute>} />
+                        <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
+                        <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+                        <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                        <Route path="/terms" element={<TermsOfServicePage />} />
+                        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+                        <Route path="/notifications/:id" element={<ProtectedRoute><NotificationDetailPage /></ProtectedRoute>} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </NotificationsProvider>
+                </FCMInitializer>
               </AuthProvider>
             </NativeNavigationHandler>
           </BrowserRouter>

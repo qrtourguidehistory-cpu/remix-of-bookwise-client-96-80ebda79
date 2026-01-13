@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "762901353486",
-    "project_id": "bookwise-447115",
-    "storage_bucket": "bookwise-447115.appspot.com"
+    "project_number": "194250427972",
+    "project_id": "mi-turnow-cliente",
+    "storage_bucket": "mi-turnow-cliente.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:762901353486:android:bookwise",
+        "mobilesdk_app_id": "1:194250427972:android:778e39b156fd849447f611",
         "android_client_info": {
           "package_name": "com.bookwise.client"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "762901353486-ag4dldcdshuolrtq3jp5suo071ja86id.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.bookwise.client",
-            "certificate_hash": "5B86AE7B6A2BFD78DD7E6E8E0B20C1F8C671F8F4"
-          }
-        },
-        {
-          "client_id": "762901353486-v2vvtk3oskg0t8rd58la8lums0tb87sa.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD2ho3j0t2dvNUBvQn9HMeMAPuAv7E_APM"
+          "current_key": "AIzaSyDE2qyVYsloRq_PD5n45UvJmqbs7g256Po"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "762901353486-v2vvtk3oskg0t8rd58la8lums0tb87sa.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
