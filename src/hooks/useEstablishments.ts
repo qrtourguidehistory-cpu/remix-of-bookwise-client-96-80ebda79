@@ -188,27 +188,30 @@ export function useEstablishment(id: string | undefined) {
       
       // Try fetching from businesses table first (Partner app data)
       // CRITICAL: Include temporarily_closed and closed_until in select
+      // Using explicit select to ensure fields are included
       const { data: businessData, error: businessError } = await supabase
         .from("businesses")
-        .select("*, temporarily_closed, closed_until")
+        .select("*")
         .eq("id", id)
         .maybeSingle();
+      
+      console.log('🔍 useEstablishment - Query result error:', businessError);
 
       // Log business data for verification
-      console.log('Business data:', businessData);
+      console.log('🔍 useEstablishment - RAW Business data from DB:', businessData);
       if (businessData) {
-        console.log('Business temporarily_closed:', businessData.temporarily_closed);
-        console.log('Business closed_until:', businessData.closed_until);
-        console.log('Current time:', new Date().toISOString());
+        console.log('🔍 useEstablishment - temporarily_closed RAW:', businessData.temporarily_closed, typeof businessData.temporarily_closed);
+        console.log('🔍 useEstablishment - closed_until RAW:', businessData.closed_until, typeof businessData.closed_until);
+        console.log('🔍 useEstablishment - Current time:', new Date().toISOString());
         if (businessData.temporarily_closed && businessData.closed_until) {
           const closedUntilDate = new Date(businessData.closed_until);
           const now = new Date();
-          console.log('Is closed?', businessData.temporarily_closed === true && closedUntilDate > now);
+          console.log('🔍 useEstablishment - Is closed?', businessData.temporarily_closed === true && closedUntilDate > now);
         }
       }
 
       if (businessData) {
-        setEstablishment({
+        const mappedEstablishment = {
           id: businessData.id,
           name: businessData.business_name || "Sin nombre",
           description: businessData.description,
@@ -226,7 +229,18 @@ export function useEstablishment(id: string | undefined) {
           is_active: businessData.is_active ?? true,
           temporarily_closed: businessData.temporarily_closed ?? false,
           closed_until: businessData.closed_until ?? null,
+        };
+        
+        console.log('🔍 useEstablishment - MAPPED Establishment:', {
+          id: mappedEstablishment.id,
+          name: mappedEstablishment.name,
+          temporarily_closed: mappedEstablishment.temporarily_closed,
+          closed_until: mappedEstablishment.closed_until,
+          type_temporarily_closed: typeof mappedEstablishment.temporarily_closed,
+          type_closed_until: typeof mappedEstablishment.closed_until
         });
+        
+        setEstablishment(mappedEstablishment);
 
         // Fetch services for this business from both tables
         const [servicesResult, businessServicesResult, staffResult, paymentResult] = await Promise.all([
