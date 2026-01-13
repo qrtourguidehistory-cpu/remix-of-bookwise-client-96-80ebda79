@@ -183,52 +183,58 @@ const BookingPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   
-  const { establishment, staff: dbStaff, loading, error } = useEstablishment(id);
+  const { establishment, staff: dbStaff, loading, error, refetch } = useEstablishment(id);
   const establishmentName = establishment?.name || "";
-  
-  // DEBUG: Log establishment data at render
-  console.log('🔍 BookingPage - ESTADO CIERRE:', {
-    establishment_id: establishment?.id,
-    establishment_name: establishment?.name,
-    temporarily_closed: establishment?.temporarily_closed,
-    closed_until: establishment?.closed_until,
-    type_temporarily_closed: typeof establishment?.temporarily_closed,
-    type_closed_until: typeof establishment?.closed_until,
-    fullEstablishment: establishment
-  });
   
   // Check if business is temporarily closed
   const isTemporarilyClosed = useMemo(() => {
-    console.log('🔍 BookingPage - Checking temporarily closed:', {
-      hasEstablishment: !!establishment,
-      temporarily_closed: establishment?.temporarily_closed,
-      closed_until: establishment?.closed_until
-    });
-    
-    if (!establishment) {
-      console.log('❌ BookingPage - No establishment');
-      return false;
-    }
-    if (!establishment.temporarily_closed) {
-      console.log('❌ BookingPage - temporarily_closed is falsy:', establishment.temporarily_closed);
-      return false;
-    }
-    if (!establishment.closed_until) {
-      console.log('⚠️ BookingPage - No closed_until, using temporarily_closed value:', establishment.temporarily_closed);
-      return establishment.temporarily_closed;
-    }
+    if (!establishment) return false;
+    if (!establishment.temporarily_closed) return false;
+    if (!establishment.closed_until) return establishment.temporarily_closed;
     
     const closedUntilDate = new Date(establishment.closed_until);
     const now = new Date();
-    const isClosed = establishment.temporarily_closed === true && closedUntilDate > now;
-    console.log('✅ BookingPage - Is temporarily closed?', isClosed, {
-      temporarily_closed: establishment.temporarily_closed,
-      closed_until: establishment.closed_until,
-      closedUntilDate: closedUntilDate.toISOString(),
-      now: now.toISOString()
-    });
-    return isClosed;
+    return establishment.temporarily_closed === true && closedUntilDate > now;
   }, [establishment]);
+
+  // Timer to automatically check if closed_until has passed
+  useEffect(() => {
+    if (!establishment?.temporarily_closed || !establishment?.closed_until) {
+      return;
+    }
+
+    const closedUntilDate = new Date(establishment.closed_until);
+    const now = new Date();
+    
+    if (closedUntilDate <= now) {
+      return;
+    }
+
+    const msUntilReopen = closedUntilDate.getTime() - now.getTime();
+    const timer = setTimeout(() => {
+      refetch();
+    }, msUntilReopen + 1000);
+
+    return () => clearTimeout(timer);
+  }, [establishment?.closed_until, establishment?.temporarily_closed, refetch]);
+
+  // Periodic check every 30 seconds
+  useEffect(() => {
+    if (!establishment?.temporarily_closed || !establishment?.closed_until) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const closedUntilDate = new Date(establishment.closed_until!);
+      const now = new Date();
+      
+      if (closedUntilDate <= now) {
+        refetch();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [establishment?.closed_until, establishment?.temporarily_closed, refetch]);
 
   // Get reopening time if temporarily closed
   const reopeningTime = useMemo(() => {

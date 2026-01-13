@@ -194,20 +194,10 @@ export function useEstablishment(id: string | undefined) {
         .select("*")
         .eq("id", id)
         .maybeSingle();
-      
-      console.log('🔍 useEstablishment - Query result error:', businessError);
 
-      // Log business data for verification
-      console.log('🔍 useEstablishment - RAW Business data from DB:', businessData);
-      if (businessData) {
-        console.log('🔍 useEstablishment - temporarily_closed RAW:', businessData.temporarily_closed, typeof businessData.temporarily_closed);
-        console.log('🔍 useEstablishment - closed_until RAW:', businessData.closed_until, typeof businessData.closed_until);
-        console.log('🔍 useEstablishment - Current time:', new Date().toISOString());
-        if (businessData.temporarily_closed && businessData.closed_until) {
-          const closedUntilDate = new Date(businessData.closed_until);
-          const now = new Date();
-          console.log('🔍 useEstablishment - Is closed?', businessData.temporarily_closed === true && closedUntilDate > now);
-        }
+      if (businessError) {
+        console.error("Error fetching business:", businessError);
+        throw businessError;
       }
 
       if (businessData) {
@@ -230,15 +220,6 @@ export function useEstablishment(id: string | undefined) {
           temporarily_closed: businessData.temporarily_closed ?? false,
           closed_until: businessData.closed_until ?? null,
         };
-        
-        console.log('🔍 useEstablishment - MAPPED Establishment:', {
-          id: mappedEstablishment.id,
-          name: mappedEstablishment.name,
-          temporarily_closed: mappedEstablishment.temporarily_closed,
-          closed_until: mappedEstablishment.closed_until,
-          type_temporarily_closed: typeof mappedEstablishment.temporarily_closed,
-          type_closed_until: typeof mappedEstablishment.closed_until
-        });
         
         setEstablishment(mappedEstablishment);
 
@@ -276,13 +257,6 @@ export function useEstablishment(id: string | undefined) {
           console.error("Error fetching business_services:", businessServicesResult.error);
         }
         
-        // Debug: Log what we're getting
-        console.log("Services result:", {
-          data: servicesResult.data,
-          error: servicesResult.error,
-          count: servicesResult.data?.length || 0,
-        });
-        
         // Combine services from both tables
         // Remove duplicates by id (in case same service exists in both tables)
         const servicesMap = new Map<string, Service>();
@@ -315,12 +289,6 @@ export function useEstablishment(id: string | undefined) {
           return (a.name || '').localeCompare(b.name || '');
         });
 
-        console.log("Services result count:", servicesResult.data?.length || 0);
-        console.log("Business services result count:", businessServicesResult.data?.length || 0);
-        console.log("All services after transformation (unique):", allServices.length);
-        console.log("Service names:", allServices.map(s => s.name));
-        console.log("Service IDs:", allServices.map(s => s.id));
-
         setServices(allServices);
         setStaff((staffResult.data as Staff[]) || []);
         setPaymentMethods((paymentResult.data as PaymentMethod[]) || []);
@@ -348,6 +316,54 @@ export function useEstablishment(id: string | undefined) {
 
     // Initial fetch
     fetchEstablishment();
+
+    // CRITICAL: Subscribe to realtime changes for businesses table
+    // This ensures immediate updates when temporarily_closed or closed_until changes
+    const businessChannel = supabase
+      .channel(`business-${id}-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "businesses",
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          console.log("🔄 Business data changed via Realtime:", payload);
+          const updatedData = payload.new as any;
+          
+          // Update establishment state immediately with new data
+          if (updatedData) {
+            setEstablishment((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                name: updatedData.business_name || prev.name,
+                description: updatedData.description ?? prev.description,
+                address: updatedData.address ?? prev.address,
+                phone: updatedData.phone ?? prev.phone,
+                email: updatedData.email ?? prev.email,
+                rating: Number(updatedData.average_rating) || prev.rating,
+                review_count: updatedData.total_reviews ?? prev.review_count,
+                main_image: updatedData.logo_url || updatedData.cover_image_url || prev.main_image,
+                category: updatedData.primary_category || updatedData.category || prev.category,
+                primary_category: updatedData.primary_category ?? prev.primary_category,
+                secondary_categories: updatedData.secondary_categories ?? prev.secondary_categories,
+                is_active: updatedData.is_active ?? prev.is_active,
+                is_public: updatedData.is_public ?? prev.is_public,
+                // CRITICAL: Update closure status immediately
+                temporarily_closed: updatedData.temporarily_closed ?? false,
+                closed_until: updatedData.closed_until ?? null,
+              };
+            });
+          }
+          
+          // Also refetch to ensure all data is in sync
+          fetchEstablishment();
+        }
+      )
+      .subscribe();
 
     // Subscribe to realtime changes for services
     const servicesChannel = supabase
@@ -387,9 +403,26 @@ export function useEstablishment(id: string | undefined) {
       )
       .subscribe();
 
+    // Refetch on window focus to ensure fresh data
+    const handleFocus = () => {
+      fetchEstablishment();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchEstablishment();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      supabase.removeChannel(businessChannel);
       supabase.removeChannel(servicesChannel);
       supabase.removeChannel(staffChannel);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [id, fetchEstablishment]);
 
