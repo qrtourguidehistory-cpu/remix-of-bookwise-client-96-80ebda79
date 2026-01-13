@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, MapPin, Clock, Phone, Share2, Heart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,59 +21,72 @@ const BusinessProfile = () => {
   const { user, isGuest } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
   
-  const { establishment, services: dbServices, paymentMethods, loading, error } = useEstablishment(id);
+  const { establishment, services: dbServices, paymentMethods, loading, error, refetch } = useEstablishment(id);
   const { hours: dbHours } = useDBBusinessHours(id);
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-
-  // DEBUG: Log establishment data
-  console.log('🔍 BusinessProfile - ESTABLISHMENT DATA:', {
-    id: establishment?.id,
-    name: establishment?.name,
-    temporarily_closed: establishment?.temporarily_closed,
-    closed_until: establishment?.closed_until,
-    fullEstablishment: establishment
-  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const touchEndY = useRef<number | null>(null);
 
   // Check if business is temporarily closed
+  // This checks both the flag and if closed_until has passed
   const isTemporarilyClosed = useMemo(() => {
-    console.log('🔍 BusinessProfile - Checking temporarily closed:', {
-      hasEstablishment: !!establishment,
-      temporarily_closed: establishment?.temporarily_closed,
-      closed_until: establishment?.closed_until,
-      type_temporarily_closed: typeof establishment?.temporarily_closed,
-      type_closed_until: typeof establishment?.closed_until
-    });
-    
-    if (!establishment) {
-      console.log('❌ No establishment');
-      return false;
-    }
-    if (!establishment.temporarily_closed) {
-      console.log('❌ temporarily_closed is falsy:', establishment.temporarily_closed);
-      return false;
-    }
-    if (!establishment.closed_until) {
-      console.log('⚠️ No closed_until, using temporarily_closed value:', establishment.temporarily_closed);
-      return establishment.temporarily_closed;
-    }
+    if (!establishment) return false;
+    if (!establishment.temporarily_closed) return false;
+    if (!establishment.closed_until) return establishment.temporarily_closed;
     
     const closedUntilDate = new Date(establishment.closed_until);
     const now = new Date();
-    const isClosed = establishment.temporarily_closed === true && closedUntilDate > now;
-    console.log('✅ Is temporarily closed?', isClosed, {
-      temporarily_closed: establishment.temporarily_closed,
-      closed_until: establishment.closed_until,
-      closedUntilDate: closedUntilDate.toISOString(),
-      now: now.toISOString(),
-      comparison: closedUntilDate > now
-    });
-    return isClosed;
+    // Business is closed if flag is true AND closed_until hasn't passed
+    return establishment.temporarily_closed === true && closedUntilDate > now;
   }, [establishment]);
 
-  // TEMPORARY: Force banner to always show for testing
-  const FORCE_BANNER = true;
-  const displayTemporarilyClosed = FORCE_BANNER || isTemporarilyClosed;
+  // Timer to automatically check if closed_until has passed
+  // This ensures the banner disappears even if Realtime doesn't fire
+  useEffect(() => {
+    if (!establishment?.temporarily_closed || !establishment?.closed_until) {
+      return;
+    }
+
+    const closedUntilDate = new Date(establishment.closed_until);
+    const now = new Date();
+    
+    // If already past, no need for timer
+    if (closedUntilDate <= now) {
+      return;
+    }
+
+    // Calculate milliseconds until reopening
+    const msUntilReopen = closedUntilDate.getTime() - now.getTime();
+    
+    // Set timer to check when closed_until passes
+    const timer = setTimeout(() => {
+      // Refetch to get latest data
+      refetch();
+    }, msUntilReopen + 1000); // Add 1 second buffer
+
+    return () => clearTimeout(timer);
+  }, [establishment?.closed_until, establishment?.temporarily_closed, refetch]);
+
+  // Periodic check every 30 seconds to ensure we catch any time drift
+  useEffect(() => {
+    if (!establishment?.temporarily_closed || !establishment?.closed_until) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const closedUntilDate = new Date(establishment.closed_until!);
+      const now = new Date();
+      
+      // If closed_until has passed, refetch to update state
+      if (closedUntilDate <= now) {
+        refetch();
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [establishment?.closed_until, establishment?.temporarily_closed, refetch]);
 
   // Get reopening time if temporarily closed
   const reopeningTime = useMemo(() => {
@@ -85,6 +98,40 @@ const BusinessProfile = () => {
       return null;
     }
   }, [isTemporarilyClosed, establishment?.closed_until]);
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Touch handlers for pull-to-refresh
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartY.current || !touchEndY.current) return;
+    
+    const distance = touchStartY.current - touchEndY.current;
+    const isPullDown = distance < -50; // Pull down more than 50px
+    
+    if (isPullDown && window.scrollY === 0) {
+      handleRefresh();
+    }
+    
+    touchStartY.current = null;
+    touchEndY.current = null;
+  };
 
   // Calculate if currently open based on business hours - MOVED BEFORE EARLY RETURNS
   // If temporarily closed, always return false
@@ -230,7 +277,12 @@ const BusinessProfile = () => {
   const isCurrentFavorite = id ? isFavorite(id) : false;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Hero Section with Image Carousel */}
       <div className="relative h-56 bg-gradient-to-br from-secondary to-muted">
         {images.length > 0 ? (
@@ -316,24 +368,15 @@ const BusinessProfile = () => {
           )}
 
           <div className="flex items-center gap-4 text-sm">
-            {displayTemporarilyClosed ? (
-              <div className="flex flex-col gap-1 w-full bg-warning/10 p-3 rounded-lg border border-warning/20">
+            {isTemporarilyClosed ? (
+              <div className="flex flex-col gap-1 w-full bg-warning/10 p-3 rounded-lg border border-warning/20 animate-fade-in">
                 <span className="flex items-center gap-1.5 text-destructive font-semibold">
                   <Clock className="w-4 h-4" strokeWidth={2} />
                   {t("business.temporarilyClosed")}
                 </span>
-                {reopeningTime ? (
+                {reopeningTime && (
                   <span className="text-muted-foreground text-xs">
                     {t("business.reopensAt")} {reopeningTime}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground text-xs">
-                    {t("business.reopensAt")} --:--
-                  </span>
-                )}
-                {FORCE_BANNER && (
-                  <span className="text-xs text-muted-foreground italic">
-                    (Banner forzado para testing)
                   </span>
                 )}
               </div>
@@ -478,7 +521,7 @@ const BusinessProfile = () => {
                 </div>
               </div>
             </div>
-            {displayTemporarilyClosed ? (
+            {isTemporarilyClosed ? (
               <Button variant="coral" size="xl" className="w-full" disabled>
                 {t("business.temporarilyClosed")}
               </Button>
