@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const BusinessProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,8 +26,34 @@ const BusinessProfile = () => {
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
+  // Check if business is temporarily closed
+  const isTemporarilyClosed = useMemo(() => {
+    if (!establishment) return false;
+    if (!establishment.temporarily_closed) return false;
+    if (!establishment.closed_until) return establishment.temporarily_closed;
+    
+    const closedUntilDate = new Date(establishment.closed_until);
+    const now = new Date();
+    return establishment.temporarily_closed === true && closedUntilDate > now;
+  }, [establishment]);
+
+  // Get reopening time if temporarily closed
+  const reopeningTime = useMemo(() => {
+    if (!isTemporarilyClosed || !establishment?.closed_until) return null;
+    try {
+      const closedUntilDate = new Date(establishment.closed_until);
+      return format(closedUntilDate, "HH:mm");
+    } catch {
+      return null;
+    }
+  }, [isTemporarilyClosed, establishment?.closed_until]);
+
   // Calculate if currently open based on business hours - MOVED BEFORE EARLY RETURNS
+  // If temporarily closed, always return false
   const isOpenNow = useMemo(() => {
+    // If temporarily closed, business is not open
+    if (isTemporarilyClosed) return false;
+    
     const now = new Date();
     const hours = dbHours || getDefaultBusinessHours(id);
     
@@ -49,7 +76,7 @@ const BusinessProfile = () => {
     }
     
     return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
-  }, [dbHours, id]);
+  }, [dbHours, id, isTemporarilyClosed]);
 
   const handleServiceSelect = (service: Service) => {
     setSelectedServices((prev) => {
@@ -251,13 +278,27 @@ const BusinessProfile = () => {
           )}
 
           <div className="flex items-center gap-4 text-sm">
-            <span className={cn(
-              "flex items-center gap-1.5",
-              isOpenNow ? "text-success" : "text-destructive"
-            )}>
-              <Clock className="w-4 h-4 text-gray-700" strokeWidth={2} />
-              {isOpenNow ? t("business.openNow") : t("business.closedNow")}
-            </span>
+            {isTemporarilyClosed ? (
+              <div className="flex flex-col gap-1 w-full">
+                <span className="flex items-center gap-1.5 text-destructive font-semibold">
+                  <Clock className="w-4 h-4" strokeWidth={2} />
+                  {t("business.temporarilyClosed")}
+                </span>
+                {reopeningTime && (
+                  <span className="text-muted-foreground text-xs">
+                    {t("business.reopensAt")} {reopeningTime}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className={cn(
+                "flex items-center gap-1.5",
+                isOpenNow ? "text-success" : "text-destructive"
+              )}>
+                <Clock className="w-4 h-4 text-gray-700" strokeWidth={2} />
+                {isOpenNow ? t("business.openNow") : t("business.closedNow")}
+              </span>
+            )}
           </div>
         </div>
 
@@ -390,11 +431,17 @@ const BusinessProfile = () => {
                 </div>
               </div>
             </div>
-            <Link to={`/booking/${id}`} state={{ services: selectedServices }}>
-              <Button variant="coral" size="xl" className="w-full">
-                {t("business.continueBooking")}
+            {isTemporarilyClosed ? (
+              <Button variant="coral" size="xl" className="w-full" disabled>
+                {t("business.temporarilyClosed")}
               </Button>
-            </Link>
+            ) : (
+              <Link to={`/booking/${id}`} state={{ services: selectedServices }}>
+                <Button variant="coral" size="xl" className="w-full">
+                  {t("business.continueBooking")}
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
