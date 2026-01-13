@@ -38,6 +38,11 @@ dependencies {
     implementation project(':capacitor-android')
     // Pin androidx.browser to 1.8.0 to avoid SDK 36 requirement (Appflow build fix)
     implementation 'androidx.browser:browser:1.8.0'
+    
+    // Firebase Cloud Messaging
+    implementation platform('com.google.firebase:firebase-bom:34.7.0')
+    implementation 'com.google.firebase:firebase-messaging'
+    
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
