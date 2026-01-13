@@ -2066,6 +2066,7 @@ export type Database = {
           business_id: string | null
           country_code: string | null
           created_at: string | null
+          email: string | null
           first_name: string | null
           full_name: string | null
           id: string
@@ -2073,7 +2074,7 @@ export type Database = {
           onboarding_step: number | null
           phone: string | null
           push_token: string | null
-          role: string | null
+          role: Database["public"]["Enums"]["role_type"]
           updated_at: string | null
         }
         Insert: {
@@ -2083,6 +2084,7 @@ export type Database = {
           business_id?: string | null
           country_code?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           full_name?: string | null
           id: string
@@ -2090,7 +2092,7 @@ export type Database = {
           onboarding_step?: number | null
           phone?: string | null
           push_token?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["role_type"]
           updated_at?: string | null
         }
         Update: {
@@ -2100,6 +2102,7 @@ export type Database = {
           business_id?: string | null
           country_code?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           full_name?: string | null
           id?: string
@@ -2107,7 +2110,7 @@ export type Database = {
           onboarding_step?: number | null
           phone?: string | null
           push_token?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["role_type"]
           updated_at?: string | null
         }
         Relationships: []
@@ -2930,6 +2933,13 @@ export type Database = {
       }
     }
     Functions: {
+      check_role_conflict: {
+        Args: {
+          p_desired_role: Database["public"]["Enums"]["role_type"]
+          p_email: string
+        }
+        Returns: string
+      }
       create_early_arrival_request: {
         Args: {
           p_appointment_id: string
@@ -3029,13 +3039,20 @@ export type Database = {
           website: string
         }[]
       }
+      validate_signup_role: {
+        Args: {
+          p_email: string
+          p_role: Database["public"]["Enums"]["role_type"]
+        }
+        Returns: Json
+      }
       verify_password: {
         Args: { hash: string; password: string }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      role_type: "partner" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3162,6 +3179,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      role_type: ["partner", "client"],
+    },
   },
 } as const
