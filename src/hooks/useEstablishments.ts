@@ -24,6 +24,8 @@ export interface UnifiedEstablishment {
   slug: string | null;
   is_public?: boolean;
   is_active?: boolean;
+  temporarily_closed?: boolean | null;
+  closed_until?: string | null;
 }
 
 // Cache for establishments data
@@ -49,10 +51,10 @@ export function useEstablishments() {
       setLoading(true);
       setError(null);
       
-      // Optimized query: only select needed columns (incluye secondary_categories)
+      // Optimized query: only select needed columns (incluye secondary_categories, temporarily_closed, closed_until)
       const { data: businessesData, error: businessesError } = await supabase
         .from("businesses")
-        .select("id, business_name, description, address, phone, email, average_rating, total_reviews, logo_url, cover_image_url, primary_category, category, secondary_categories, slug, is_public, is_active, created_at")
+        .select("id, business_name, description, address, phone, email, average_rating, total_reviews, logo_url, cover_image_url, primary_category, category, secondary_categories, slug, is_public, is_active, temporarily_closed, closed_until, created_at")
         .eq("is_public", true)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
@@ -80,6 +82,8 @@ export function useEstablishments() {
         slug: b.slug,
         is_public: b.is_public ?? true,
         is_active: b.is_active ?? true,
+        temporarily_closed: b.temporarily_closed ?? false,
+        closed_until: b.closed_until ?? null,
       }));
 
       // Update cache
@@ -183,11 +187,25 @@ export function useEstablishment(id: string | undefined) {
       };
       
       // Try fetching from businesses table first (Partner app data)
+      // CRITICAL: Include temporarily_closed and closed_until in select
       const { data: businessData, error: businessError } = await supabase
         .from("businesses")
-        .select("*")
+        .select("*, temporarily_closed, closed_until")
         .eq("id", id)
         .maybeSingle();
+
+      // Log business data for verification
+      console.log('Business data:', businessData);
+      if (businessData) {
+        console.log('Business temporarily_closed:', businessData.temporarily_closed);
+        console.log('Business closed_until:', businessData.closed_until);
+        console.log('Current time:', new Date().toISOString());
+        if (businessData.temporarily_closed && businessData.closed_until) {
+          const closedUntilDate = new Date(businessData.closed_until);
+          const now = new Date();
+          console.log('Is closed?', businessData.temporarily_closed === true && closedUntilDate > now);
+        }
+      }
 
       if (businessData) {
         setEstablishment({
@@ -206,6 +224,8 @@ export function useEstablishment(id: string | undefined) {
           slug: businessData.slug,
           is_public: businessData.is_public ?? true,
           is_active: businessData.is_active ?? true,
+          temporarily_closed: businessData.temporarily_closed ?? false,
+          closed_until: businessData.closed_until ?? null,
         });
 
         // Fetch services for this business from both tables

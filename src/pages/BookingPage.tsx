@@ -186,6 +186,28 @@ const BookingPage = () => {
   const { establishment, staff: dbStaff, loading, error } = useEstablishment(id);
   const establishmentName = establishment?.name || "";
   
+  // Check if business is temporarily closed
+  const isTemporarilyClosed = useMemo(() => {
+    if (!establishment) return false;
+    if (!establishment.temporarily_closed) return false;
+    if (!establishment.closed_until) return establishment.temporarily_closed;
+    
+    const closedUntilDate = new Date(establishment.closed_until);
+    const now = new Date();
+    return establishment.temporarily_closed === true && closedUntilDate > now;
+  }, [establishment]);
+
+  // Get reopening time if temporarily closed
+  const reopeningTime = useMemo(() => {
+    if (!isTemporarilyClosed || !establishment?.closed_until) return null;
+    try {
+      const closedUntilDate = new Date(establishment.closed_until);
+      return format(closedUntilDate, "HH:mm");
+    } catch {
+      return null;
+    }
+  }, [isTemporarilyClosed, establishment?.closed_until]);
+  
   const services = (location.state?.services as Service[]) || [];
   const { createAppointment } = useAppointments();
 
@@ -449,6 +471,8 @@ const BookingPage = () => {
   // - If multiple staff: if a staff is selected, show that staff availability; otherwise show union of times where ANY staff is free.
   const availableStartTimes = useMemo(() => {
     if (!selectedDate) return [];
+    // CRITICAL: Block slot generation if temporarily closed
+    if (isTemporarilyClosed) return [];
     if (isClosed) return [];
 
     const durationMin = selectedDurationMinutes;
@@ -498,6 +522,7 @@ const BookingPage = () => {
     return [...union].sort((a, b) => a - b);
   }, [
     selectedDate,
+    isTemporarilyClosed,
     isClosed,
     selectedDurationMinutes,
     busyByStaffId,
@@ -577,7 +602,8 @@ const BookingPage = () => {
     return isValid;
   };
 
-  const canConfirm = selectedDate && 
+  const canConfirm = !isTemporarilyClosed &&
+                     selectedDate && 
                      selectedTime && 
                      allServicesHaveStaff && 
                      clientName.trim() && 
@@ -589,6 +615,16 @@ const BookingPage = () => {
   };
 
   const handleConfirm = async () => {
+    // CRITICAL: Block booking if temporarily closed
+    if (isTemporarilyClosed) {
+      toast({
+        title: t("booking.temporarilyClosedTitle"),
+        description: t("booking.temporarilyClosedMessage"),
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate form before proceeding
     if (!validateForm()) {
       toast({
@@ -928,7 +964,18 @@ const BookingPage = () => {
               {t("booking.availableTimes")}
             </h2>
             <div className="bg-card rounded-xl border border-border p-4">
-              {isClosed ? (
+              {isTemporarilyClosed ? (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-destructive mx-auto mb-3" />
+                  <p className="text-lg font-medium text-foreground">{t("booking.temporarilyClosedTitle")}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t("booking.temporarilyClosedMessage")}</p>
+                  {reopeningTime && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {t("booking.temporarilyClosedReopens")} {reopeningTime}
+                    </p>
+                  )}
+                </div>
+              ) : isClosed ? (
                 <div className="text-center py-8">
                   <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-lg font-medium text-foreground">{t("booking.closedTitle")}</p>

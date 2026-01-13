@@ -106,6 +106,8 @@
     "openNow": "Abierto ahora",
     "closedNow": "Cerrado ahora",
     "closesAt": "Cierra a las",
+    "temporarilyClosed": "Cerrado temporalmente",
+    "reopensAt": "Reabre a las",
     "phone": "Teléfono",
     "address": "Dirección",
     "service": "servicio",
@@ -138,6 +140,9 @@
     "anyProfessional": "Cualquier profesional disponible",
     "closedTitle": "Cerrado",
     "closedMessage": "Este establecimiento está cerrado el día seleccionado. Por favor, elige otra fecha.",
+    "temporarilyClosedTitle": "Cerrado Temporalmente",
+    "temporarilyClosedMessage": "Este establecimiento está cerrado temporalmente. No se pueden realizar reservas en este momento.",
+    "temporarilyClosedReopens": "Reabre a las",
     "noServices": "No hay servicios seleccionados",
     "selectServicesFirst": "Por favor selecciona servicios primero desde la página del establecimiento"
   },

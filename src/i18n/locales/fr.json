@@ -72,6 +72,8 @@
     "cancellationPolicy": "Politique d'Annulation",
     "openNow": "Ouvert maintenant",
     "closedNow": "Fermé maintenant",
+    "temporarilyClosed": "Fermé Temporairement",
+    "reopensAt": "Rouvre à",
     "noImage": "Pas d'image",
     "noServices": "Aucun service disponible",
     "notFound": "Établissement non trouvé",
@@ -100,7 +102,10 @@
     "anyProfessional": "N'importe quel professionnel disponible",
     "assignProfessionals": "Attribuer des Professionnels par Service",
     "closedTitle": "Fermé",
-    "closedMessage": "Cet établissement est fermé le jour sélectionné. Veuillez choisir une autre date."
+    "closedMessage": "Cet établissement est fermé le jour sélectionné. Veuillez choisir une autre date.",
+    "temporarilyClosedTitle": "Fermé Temporairement",
+    "temporarilyClosedMessage": "Cet établissement est temporairement fermé. Les réservations ne peuvent pas être effectuées pour le moment.",
+    "temporarilyClosedReopens": "Rouvre à"
   },
   "appointments": {
     "title": "Mes Rendez-vous",

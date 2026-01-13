@@ -106,6 +106,8 @@
     "openNow": "Open now",
     "closedNow": "Closed now",
     "closesAt": "Closes at",
+    "temporarilyClosed": "Temporarily Closed",
+    "reopensAt": "Reopens at",
     "phone": "Phone",
     "address": "Address",
     "service": "service",
@@ -138,6 +140,9 @@
     "anyProfessional": "Any available professional",
     "closedTitle": "Closed",
     "closedMessage": "This establishment is closed on the selected day. Please choose another date.",
+    "temporarilyClosedTitle": "Temporarily Closed",
+    "temporarilyClosedMessage": "This establishment is temporarily closed. Bookings cannot be made at this time.",
+    "temporarilyClosedReopens": "Reopens at",
     "noServices": "No services selected",
     "selectServicesFirst": "Please select services first from the establishment page"
   },
