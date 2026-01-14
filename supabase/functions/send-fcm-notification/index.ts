@@ -119,43 +119,28 @@ async function getFirebaseAccessToken(serviceAccount: ServiceAccount): Promise<s
 }
 
 // Send FCM notification via HTTP v1 API
-// IMPORTANTE: Para que Android muestre notificaciones cuando la app está cerrada,
-// el payload DEBE tener el bloque 'notification' a nivel superior.
-// Si solo tiene 'data', Android NO mostrará nada sin código nativo.
+// SOLUCIÓN: Enviar SOLO notification, SIN data
+// Esto garantiza que Android muestre la notificación igual que Firebase Console
 async function sendFCMMessage(
   token: string,
   title: string,
   body: string,
-  data: Record<string, string> | undefined,
   projectId: string,
   accessToken: string
 ): Promise<{ success: boolean; error?: string }> {
-  // CRÍTICO: El bloque 'notification' a nivel superior es lo que hace que
-  // Android muestre la notificación automáticamente cuando la app está cerrada.
-  // Si solo hay 'data', Android requiere FirebaseMessagingService para procesarlo.
+  // NOTIFICATION-ONLY: Exactamente como Firebase Console
+  // NO incluir 'data' para evitar problemas con Capacitor en background
   const message = {
     message: {
-      token: token,
-      // NOTIFICATION MESSAGE: Android mostrará esto automáticamente cuando app está cerrada
+      token,
       notification: {
-        title: title,
-        body: body
+        title,
+        body
       },
-      // DATA: Se incluye para que la app pueda procesar cuando se abre
-      // PERO la notificación se mostrará incluso sin esto
-      data: data ? Object.fromEntries(
-        Object.entries(data).map(([k, v]) => [k, String(v)])
-      ) : {},
       android: {
-        priority: 'high' as const, // Alta prioridad para entregar incluso en modo Doze
+        priority: 'high' as const,
         notification: {
-          channel_id: 'default_channel', // DEBE coincidir con el canal creado en la app
-          sound: 'default',
-          default_vibrate_timings: true,
-          default_light_settings: true,
-          // Asegurar que la notificación se muestre incluso con app cerrada
-          notification_priority: 'PRIORITY_HIGH' as const,
-          visibility: 'PUBLIC' as const
+          channel_id: 'default_channel'
         }
       }
     }
@@ -288,7 +273,6 @@ serve(async (req) => {
         device.fcm_token,
         title,
         body,
-        data,
         serviceAccount.project_id,
         accessToken
       );
