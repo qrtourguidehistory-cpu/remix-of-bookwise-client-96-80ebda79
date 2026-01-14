@@ -119,8 +119,7 @@ async function getFirebaseAccessToken(serviceAccount: ServiceAccount): Promise<s
 }
 
 // Send FCM notification via HTTP v1 API
-// SOLUCIÓN: Enviar SOLO notification, SIN data
-// Esto garantiza que Android muestre la notificación igual que Firebase Console
+// PAYLOAD MÍNIMO: Exactamente igual que Firebase Console
 async function sendFCMMessage(
   token: string,
   title: string,
@@ -128,25 +127,19 @@ async function sendFCMMessage(
   projectId: string,
   accessToken: string
 ): Promise<{ success: boolean; error?: string }> {
-  // NOTIFICATION-ONLY: Exactamente como Firebase Console
-  // NO incluir 'data' para evitar problemas con Capacitor en background
-  const message = {
+  // PAYLOAD MÍNIMO ABSOLUTO - Sin android, sin data, sin extras
+  // Idéntico a Firebase Console "Send test message"
+  const fcmPayload = {
     message: {
       token,
       notification: {
         title,
         body
-      },
-      android: {
-        priority: 'high' as const,
-        notification: {
-          channel_id: 'default_channel'
-        }
       }
     }
   };
   
-  console.log('📤 FCM Payload:', JSON.stringify(message, null, 2));
+  console.log('📤 FCM Payload (MÍNIMO):', JSON.stringify(fcmPayload, null, 2));
   console.log('📤 Token (first 30 chars):', token.substring(0, 30) + '...');
 
   try {
@@ -158,7 +151,7 @@ async function sendFCMMessage(
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(message),
+        body: JSON.stringify(fcmPayload),
       }
     );
 
