@@ -16,10 +16,38 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Usar debug keystore para release (solo para testing)
+        // En producción, crear un keystore específico para release
+        release {
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            def keystoreProperties = new Properties()
+            
+            // Intentar usar debug keystore si no hay keystore.properties
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            } else {
+                // Usar debug keystore para testing
+                def debugKeystore = file("${System.getProperty('user.home')}/.android/debug.keystore")
+                if (debugKeystore.exists()) {
+                    storeFile debugKeystore
+                    storePassword 'android'
+                    keyAlias 'androiddebugkey'
+                    keyPassword 'android'
+                }
+            }
+        }
+    }
+    
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

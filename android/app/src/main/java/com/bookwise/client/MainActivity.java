@@ -12,13 +12,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        Log.d(TAG, "🚀 ===== MainActivity onCreate ===== ");
-        Log.d(TAG, "📱 Inicializando FCM Token Manager...");
-        
-        // Solicitar token FCM al iniciar la app
-        // El token se enviará al backend cuando el usuario inicie sesión
-        FCMTokenManager.getFCMToken(this);
     }
 
     @Override
