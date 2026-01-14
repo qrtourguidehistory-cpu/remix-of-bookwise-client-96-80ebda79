@@ -27,52 +27,82 @@ export const useFCMNotifications = (userId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const listenersRegistered = useRef(false);
-  const initializationAttempted = useRef(false);
+  const initializationAttempted = useRef<string | null>(null); // Track which userId was attempted
+  const registrationCalled = useRef(false); // Track if register() was called
 
-  // Register FCM token in database using raw SQL via RPC or direct fetch
+  // Register FCM token in database using UPSERT to avoid duplicates
+  // This function handles token registration/update in client_devices table
   const registerToken = useCallback(async (token: string, currentUserId: string) => {
     const platform = Capacitor.getPlatform();
     
     try {
-      console.log('📱 FCM: Registering token for user:', currentUserId);
-      
-      // Use fetch to call Supabase REST API directly for the custom table
-      const supabaseUrl = 'https://rdznelijpliklisnflfm.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkem5lbGlqcGxpa2xpc25mbGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjY4MzAsImV4cCI6MjA3ODIwMjgzMH0.o8G-wYYIN0Paw20YP4dSJcL5mf2mUdrfcWRfMauFjGQ';
+      console.log('📱 [FCM] Token generado:', token.substring(0, 20) + '...');
+      console.log('📱 [FCM] Registrando token para usuario:', currentUserId);
+      console.log('📱 [FCM] Plataforma:', platform);
       
       // Get the current session for auth header
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      const response = await fetch(`${supabaseUrl}/rest/v1/client_devices`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${session?.access_token || supabaseKey}`,
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({
-          user_id: currentUserId,
-          fcm_token: token,
-          platform: platform,
-          device_info: {
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-          },
-          updated_at: new Date().toISOString()
-        })
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ FCM: Error registering token:', errorText);
-        throw new Error(errorText);
+      if (sessionError) {
+        console.error('❌ [FCM] Error al obtener sesión:', sessionError);
+        // No bloquear la app, solo loguear el error
+        return;
       }
       
-      console.log('✅ FCM: Token registered successfully');
+      if (!session?.access_token) {
+        console.warn('⚠️ [FCM] No hay sesión activa, no se puede registrar el token');
+        // No bloquear la app, solo loguear la advertencia
+        return;
+      }
+      
+      // Use Supabase client for UPSERT operation
+      // UPSERT: Si existe un registro con el mismo user_id y fcm_token, lo actualiza
+      // Si no existe, lo crea
+      // La constraint única es client_devices_user_token_unique (user_id, fcm_token)
+      const { data, error } = await supabase
+        .from('client_devices')
+        .upsert(
+          {
+            user_id: currentUserId,
+            fcm_token: token,
+            platform: platform === 'android' ? 'android' : platform, // Asegurar 'android' para Android
+            device_info: {
+              userAgent: navigator.userAgent || 'unknown',
+              timestamp: new Date().toISOString(),
+              appVersion: '1.0.0', // Puedes obtener esto de package.json o config
+            },
+            updated_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'client_devices_user_token_unique', // Usar el nombre de la constraint única
+            ignoreDuplicates: false // Actualizar en lugar de ignorar
+          }
+        )
+        .select();
+      
+      if (error) {
+        console.error('❌ [FCM] Error al registrar token en Supabase:', error);
+        console.error('❌ [FCM] Detalles del error:', JSON.stringify(error, null, 2));
+        // No bloquear la app, solo loguear el error
+        setError(`Error al registrar token: ${error.message}`);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        console.log('✅ [FCM] Token registrado/actualizado exitosamente en Supabase');
+        console.log('✅ [FCM] Registro ID:', data[0].id);
+        console.log('✅ [FCM] Token guardado:', data[0].fcm_token?.substring(0, 20) + '...');
+      } else {
+        console.warn('⚠️ [FCM] Token registrado pero no se recibió confirmación');
+      }
+      
     } catch (err) {
-      console.error('❌ FCM: Error in registerToken:', err);
-      setError(err instanceof Error ? err.message : 'Failed to register FCM token');
+      // No bloquear la app si falla el registro del token
+      console.error('❌ [FCM] Excepción al registrar token:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al registrar token';
+      console.error('❌ [FCM] Mensaje de error:', errorMessage);
+      setError(errorMessage);
+      // No lanzar el error, solo loguearlo para no bloquear la app
     }
   }, []);
 
@@ -94,27 +124,51 @@ export const useFCMNotifications = (userId: string | undefined) => {
     }
   }, [navigate]);
 
-  // Initialize FCM
+  // Initialize FCM with proper Android 13+ permission handling
   const initializeFCM = useCallback(async () => {
+    console.log('🚀 [FCM] ===== INICIO DE initializeFCM =====');
+    console.log('📱 [FCM] Plataforma detectada:', Capacitor.getPlatform());
+    console.log('📱 [FCM] Es plataforma nativa?', Capacitor.isNativePlatform());
+    console.log('📱 [FCM] userId recibido:', userId);
+    console.log('📱 [FCM] userId anterior intentado:', initializationAttempted.current);
+    
     if (!Capacitor.isNativePlatform()) {
-      console.log('📱 FCM: Not a native platform, skipping initialization');
+      console.log('⚠️ [FCM] No es plataforma nativa, omitiendo inicialización');
       setIsLoading(false);
       return;
     }
 
     if (!userId) {
-      console.log('📱 FCM: No user ID, skipping initialization');
+      console.log('⚠️ [FCM] No hay user ID, omitiendo inicialización');
       setIsLoading(false);
       return;
     }
 
-    if (initializationAttempted.current) {
-      console.log('📱 FCM: Already attempted initialization');
+    // Verificar sesión activa antes de continuar
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      console.warn('⚠️ [FCM] No hay sesión activa, esperando...', sessionError);
+      setIsLoading(false);
+      return;
+    }
+    console.log('✅ [FCM] Sesión activa confirmada para usuario:', session.user.id);
+
+    // Permitir reintentos si el usuario cambia o si no se ha llamado register() aún
+    if (initializationAttempted.current === userId && registrationCalled.current) {
+      console.log('ℹ️ [FCM] Ya se intentó inicialización para este usuario y register() fue llamado');
       return;
     }
 
-    initializationAttempted.current = true;
-    console.log('📱 FCM: Starting initialization...');
+    // Si cambió el usuario, resetear el flag
+    if (initializationAttempted.current !== userId) {
+      console.log('🔄 [FCM] Usuario cambió, reiniciando inicialización');
+      initializationAttempted.current = userId;
+      registrationCalled.current = false;
+    }
+
+    console.log('✅ [FCM] Iniciando inicialización de FCM...');
+    console.log('📱 [FCM] Usuario:', userId);
+    console.log('📱 [FCM] Plataforma:', Capacitor.getPlatform());
 
     try {
       // Dynamically import to avoid issues on web
@@ -122,70 +176,101 @@ export const useFCMNotifications = (userId: string | undefined) => {
       
       // Check current permission status
       let permStatus = await PushNotifications.checkPermissions();
-      console.log('📱 FCM: Current permission status:', permStatus.receive);
+      console.log('📱 [FCM] Estado actual de permisos:', permStatus.receive);
       
-      // Request permission if needed
-      if (permStatus.receive === 'prompt') {
-        console.log('📱 FCM: Requesting permission...');
+      // Request permission if needed (Android 13+ requires POST_NOTIFICATIONS permission)
+      if (permStatus.receive === 'prompt' || permStatus.receive === 'denied') {
+        console.log('📱 [FCM] Solicitando permisos de notificaciones...');
         permStatus = await PushNotifications.requestPermissions();
-        console.log('📱 FCM: Permission result:', permStatus.receive);
+        console.log('📱 [FCM] Resultado de permisos:', permStatus.receive);
       }
       
       if (permStatus.receive !== 'granted') {
-        console.log('📱 FCM: Permission denied');
+        console.warn('⚠️ [FCM] Permisos de notificaciones denegados');
         setHasPermission(false);
         setIsLoading(false);
-        setError('Push notification permission denied');
+        setError('Permisos de notificaciones denegados. Por favor, habilítalos en configuración.');
+        // No bloquear la app, solo informar al usuario
         return;
       }
       
       setHasPermission(true);
+      console.log('✅ [FCM] Permisos de notificaciones concedidos');
       
       // Register listeners only once
       if (!listenersRegistered.current) {
         listenersRegistered.current = true;
+        console.log('📱 [FCM] Registrando listeners de FCM...');
         
-        // Token registration listener
+        // Token registration listener - se ejecuta cuando se obtiene el token FCM
         await PushNotifications.addListener('registration', async (token) => {
-          console.log('📱 FCM: Token received:', token.value.substring(0, 20) + '...');
-          setFcmToken(token.value);
+          const tokenValue = token.value;
+          console.log('🎉 [FCM] ===== TOKEN FCM GENERADO =====');
+          console.log('✅ [FCM] Token FCM recibido:', tokenValue.substring(0, 30) + '...');
+          console.log('📱 [FCM] Longitud del token:', tokenValue.length);
+          console.log('📱 [FCM] Token completo (primeros 50 chars):', tokenValue.substring(0, 50));
+          setFcmToken(tokenValue);
           
+          // Registrar token en Supabase inmediatamente
           if (userId) {
-            await registerToken(token.value, userId);
+            console.log('📤 [FCM] ===== INICIANDO UPSERT A client_devices =====');
+            console.log('📱 [FCM] userId:', userId);
+            console.log('📱 [FCM] fcm_token:', tokenValue.substring(0, 30) + '...');
+            console.log('📱 [FCM] platform:', Capacitor.getPlatform());
+            await registerToken(tokenValue, userId);
+          } else {
+            console.warn('⚠️ [FCM] No hay userId, no se puede registrar el token');
           }
         });
         
         // Registration error listener
         await PushNotifications.addListener('registrationError', (err) => {
-          console.error('❌ FCM: Registration error:', err);
-          setError(`FCM registration failed: ${err.error}`);
+          console.error('❌ [FCM] Error al registrar FCM:', err);
+          console.error('❌ [FCM] Detalles del error:', JSON.stringify(err, null, 2));
+          setError(`Error al registrar FCM: ${err.error || 'Error desconocido'}`);
+          // No bloquear la app, solo informar
         });
         
         // Foreground notification listener
         await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('📱 FCM: Notification received (foreground):', notification);
-          // You can show a toast or in-app notification here
+          console.log('📱 [FCM] Notificación recibida (foreground):', notification);
+          // Puedes mostrar un toast o notificación in-app aquí
         });
         
         // Notification tap listener
         await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-          console.log('📱 FCM: Notification tapped:', notification);
+          console.log('📱 [FCM] Notificación tocada:', notification);
           handleNotificationNavigation(notification.notification.data as FCMNotificationData);
         });
+        
+        console.log('✅ [FCM] Listeners registrados correctamente');
       }
       
-      // Register for push notifications
-      console.log('📱 FCM: Calling register()...');
-      await PushNotifications.register();
-      console.log('📱 FCM: Register called successfully');
+      // Register for push notifications - esto obtiene el token FCM
+      console.log('📱 [FCM] ===== LLAMANDO A PushNotifications.register() =====');
+      console.log('📱 [FCM] Este es el paso crítico que obtiene el token FCM');
+      try {
+        await PushNotifications.register();
+        registrationCalled.current = true;
+        console.log('✅ [FCM] PushNotifications.register() llamado exitosamente');
+        console.log('⏳ [FCM] Esperando token FCM en el listener "registration"...');
+      } catch (registerError) {
+        console.error('❌ [FCM] Error al llamar PushNotifications.register():', registerError);
+        registrationCalled.current = false;
+        throw registerError;
+      }
       
     } catch (err) {
-      console.error('❌ FCM: Initialization error:', err);
-      setError(err instanceof Error ? err.message : 'FCM initialization failed');
+      // No bloquear la app si falla la inicialización
+      console.error('❌ [FCM] Error en inicialización:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido en inicialización de FCM';
+      console.error('❌ [FCM] Mensaje de error:', errorMessage);
+      setError(errorMessage);
+      // No lanzar el error para no bloquear la app
     } finally {
       setIsLoading(false);
     }
-  }, [userId, registerToken, handleNotificationNavigation]);
+  }, [userId, registerToken, handleNotificationNavigation, fcmToken]);
 
   // Remove token on logout
   const removeToken = useCallback(async () => {
@@ -234,23 +319,133 @@ export const useFCMNotifications = (userId: string | undefined) => {
       const { PushNotifications } = await import('@capacitor/push-notifications');
       await PushNotifications.removeAllListeners();
       listenersRegistered.current = false;
-      initializationAttempted.current = false;
-      console.log('📱 FCM: Listeners removed');
+      initializationAttempted.current = null; // Reset para permitir reinicialización
+      registrationCalled.current = false;
+      console.log('📱 [FCM] Listeners removed y flags reseteados');
     } catch (err) {
-      console.error('❌ FCM: Error removing listeners:', err);
+      console.error('❌ [FCM] Error removing listeners:', err);
     }
   }, []);
-
-  // Initialize on mount when user is available
+  
+  // Reset flags when userId changes
   useEffect(() => {
+    if (userId && initializationAttempted.current !== userId) {
+      console.log('🔄 [FCM] userId cambió, reseteando flags de inicialización');
+      registrationCalled.current = false;
+    }
+  }, [userId]);
+
+  // Initialize FCM when user logs in or app opens
+  // This ensures token is registered on login and app open
+  useEffect(() => {
+    console.log('🔄 [FCM] ===== useEffect: userId cambió =====');
+    console.log('📱 [FCM] userId:', userId);
+    console.log('📱 [FCM] Es plataforma nativa:', Capacitor.isNativePlatform());
+    
     if (userId && Capacitor.isNativePlatform()) {
-      initializeFCM();
+      console.log('✅ [FCM] Condiciones cumplidas, iniciando FCM...');
+      
+      let timer: NodeJS.Timeout | null = null;
+      
+      // Verificar sesión antes de inicializar
+      const checkSessionAndInitialize = async () => {
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('❌ [FCM] Error al verificar sesión:', sessionError);
+            setIsLoading(false);
+            return;
+          }
+          
+          if (!session) {
+            console.warn('⚠️ [FCM] No hay sesión activa aún, esperando...');
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log('✅ [FCM] Sesión confirmada, inicializando FCM en 500ms...');
+          console.log('📱 [FCM] Session user ID:', session.user.id);
+          console.log('📱 [FCM] Session expires at:', new Date(session.expires_at! * 1000).toISOString());
+          
+          // Pequeño delay para asegurar que la sesión esté completamente establecida
+          timer = setTimeout(() => {
+            console.log('⏰ [FCM] Timer ejecutado, llamando initializeFCM()...');
+            initializeFCM();
+          }, 500);
+        } catch (err) {
+          console.error('❌ [FCM] Error en checkSessionAndInitialize:', err);
+          setIsLoading(false);
+        }
+      };
+      
+      checkSessionAndInitialize();
+      
+      return () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+      };
     } else {
+      console.log('⚠️ [FCM] Condiciones no cumplidas, omitiendo inicialización');
       setIsLoading(false);
     }
+  }, [userId, initializeFCM]);
+  
+  // Re-register token if it changes (FCM tokens can change)
+  useEffect(() => {
+    if (fcmToken && userId && Capacitor.isNativePlatform()) {
+      console.log('🔄 [FCM] ===== Token detectado, verificando registro =====');
+      console.log('📱 [FCM] Token:', fcmToken.substring(0, 30) + '...');
+      console.log('📱 [FCM] userId:', userId);
+      // Re-register token to ensure it's up to date
+      registerToken(fcmToken, userId).catch(err => {
+        console.error('❌ [FCM] Error al re-registrar token:', err);
+        // No bloquear la app
+      });
+    }
+  }, [fcmToken, userId, registerToken]);
+  
+  // Force initialization when session exists (for silent Google login)
+  useEffect(() => {
+    const checkSession = async () => {
+      if (!Capacitor.isNativePlatform()) return;
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session && session.user && session.user.id) {
+          const sessionUserId = session.user.id;
+          console.log('🔍 [FCM] ===== Verificando sesión silenciosa =====');
+          console.log('📱 [FCM] Session user ID:', sessionUserId);
+          console.log('📱 [FCM] Hook userId:', userId);
+          console.log('📱 [FCM] Ya inicializado para este usuario?', initializationAttempted.current === sessionUserId);
+          
+          // Si hay sesión pero el hook no se ha ejecutado para este usuario, forzar inicialización
+          if (sessionUserId && (!initializationAttempted.current || initializationAttempted.current !== sessionUserId)) {
+            console.log('🚀 [FCM] Sesión detectada pero hook no inicializado, forzando inicialización...');
+            // Pequeño delay para asegurar que el userId del hook se actualice
+            setTimeout(() => {
+              if (userId === sessionUserId) {
+                console.log('✅ [FCM] userId coincide, ejecutando initializeFCM()...');
+                initializeFCM();
+              } else {
+                console.log('⚠️ [FCM] userId no coincide aún, esperando...');
+              }
+            }, 1000);
+          }
+        }
+      } catch (err) {
+        console.error('❌ [FCM] Error al verificar sesión silenciosa:', err);
+      }
+    };
+    
+    // Verificar inmediatamente y luego cada 2 segundos por si hay login silencioso
+    checkSession();
+    const interval = setInterval(checkSession, 2000);
     
     return () => {
-      // Don't cleanup on unmount to preserve registration
+      clearInterval(interval);
     };
   }, [userId, initializeFCM]);
 

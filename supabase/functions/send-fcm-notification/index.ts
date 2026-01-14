@@ -119,6 +119,9 @@ async function getFirebaseAccessToken(serviceAccount: ServiceAccount): Promise<s
 }
 
 // Send FCM notification via HTTP v1 API
+// IMPORTANTE: Para que Android muestre notificaciones cuando la app está cerrada,
+// el payload DEBE tener el bloque 'notification' a nivel superior.
+// Si solo tiene 'data', Android NO mostrará nada sin código nativo.
 async function sendFCMMessage(
   token: string,
   title: string,
@@ -127,25 +130,39 @@ async function sendFCMMessage(
   projectId: string,
   accessToken: string
 ): Promise<{ success: boolean; error?: string }> {
+  // CRÍTICO: El bloque 'notification' a nivel superior es lo que hace que
+  // Android muestre la notificación automáticamente cuando la app está cerrada.
+  // Si solo hay 'data', Android requiere FirebaseMessagingService para procesarlo.
   const message = {
     message: {
       token: token,
+      // NOTIFICATION MESSAGE: Android mostrará esto automáticamente cuando app está cerrada
       notification: {
         title: title,
         body: body
       },
-      data: data || {},
+      // DATA: Se incluye para que la app pueda procesar cuando se abre
+      // PERO la notificación se mostrará incluso sin esto
+      data: data ? Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, String(v)])
+      ) : {},
       android: {
-        priority: 'high' as const,
+        priority: 'high' as const, // Alta prioridad para entregar incluso en modo Doze
         notification: {
-          channel_id: 'default_channel',
+          channel_id: 'default_channel', // DEBE coincidir con el canal creado en la app
           sound: 'default',
           default_vibrate_timings: true,
-          default_light_settings: true
+          default_light_settings: true,
+          // Asegurar que la notificación se muestre incluso con app cerrada
+          notification_priority: 'PRIORITY_HIGH' as const,
+          visibility: 'PUBLIC' as const
         }
       }
     }
   };
+  
+  console.log('📤 FCM Payload:', JSON.stringify(message, null, 2));
+  console.log('📤 Token (first 30 chars):', token.substring(0, 30) + '...');
 
   try {
     const response = await fetch(
@@ -248,6 +265,13 @@ serve(async (req) => {
     }
 
     console.log(`📬 Found ${devices.length} device(s)`);
+    
+    // Log tokens for verification
+    for (const device of devices) {
+      console.log(`📬 Device token (first 30 chars): ${device.fcm_token.substring(0, 30)}...`);
+      console.log(`📬 Device token length: ${device.fcm_token.length}`);
+      console.log(`📬 Device ID: ${device.id}`);
+    }
 
     // Get Firebase access token
     const accessToken = await getFirebaseAccessToken(serviceAccount);
@@ -257,6 +281,9 @@ serve(async (req) => {
     const invalidTokenIds: string[] = [];
 
     for (const device of devices) {
+      console.log(`📤 Sending to device ${device.id}...`);
+      console.log(`📤 Token being used: ${device.fcm_token.substring(0, 30)}...`);
+      
       const result = await sendFCMMessage(
         device.fcm_token,
         title,
@@ -265,6 +292,8 @@ serve(async (req) => {
         serviceAccount.project_id,
         accessToken
       );
+      
+      console.log(`📤 Result for device ${device.id}:`, result);
 
       if (result.success) {
         successCount++;

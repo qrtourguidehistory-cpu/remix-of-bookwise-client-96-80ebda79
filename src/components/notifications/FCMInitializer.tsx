@@ -8,15 +8,25 @@ import { useFCMNotifications } from '@/hooks/useFCMNotifications';
  * the AuthProvider to have access to the user context.
  */
 export const FCMInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { fcmToken, hasPermission, isLoading, error, removeToken, cleanup } = useFCMNotifications(user?.id);
 
   useEffect(() => {
+    console.log('🔔 [FCMInitializer] ===== Componente montado/actualizado =====');
+    console.log('📱 [FCMInitializer] user:', user?.id || 'null');
+    console.log('📱 [FCMInitializer] session:', session ? 'existe' : 'no existe');
+    console.log('📱 [FCMInitializer] fcmToken:', fcmToken ? fcmToken.substring(0, 30) + '...' : 'null');
+    console.log('📱 [FCMInitializer] hasPermission:', hasPermission);
+    console.log('📱 [FCMInitializer] isLoading:', isLoading);
+    console.log('📱 [FCMInitializer] error:', error || 'null');
+  }, [user, session, fcmToken, hasPermission, isLoading, error]);
+
+  useEffect(() => {
     if (fcmToken) {
-      console.log('📱 FCM: Initialized with token');
+      console.log('✅ [FCMInitializer] Token FCM disponible:', fcmToken.substring(0, 30) + '...');
     }
     if (error) {
-      console.warn('📱 FCM: Initialization error:', error);
+      console.warn('⚠️ [FCMInitializer] Error de inicialización:', error);
     }
   }, [fcmToken, error]);
 

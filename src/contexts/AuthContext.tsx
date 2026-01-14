@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
+import { initFCM } from '@/utils/fcm';
 
 type ClientProfileRow = Tables<"client_profiles">;
 
@@ -37,6 +38,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
   refetchProfile: () => Promise<void>;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -86,6 +88,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Manejar diferentes eventos
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ AuthContext: SIGNED_IN detectado, usuario:', session.user.email);
+          console.log('✅ AuthContext: User ID:', session.user.id);
+          console.log('✅ AuthContext: Platform:', Capacitor.getPlatform());
+          console.log('✅ AuthContext: isNativePlatform:', Capacitor.isNativePlatform());
+          
+          // Inicializar FCM SOLO después del login (usando @capacitor/push-notifications)
+          // Pequeño delay para asegurar que todo esté listo
+          setTimeout(() => {
+            if (Capacitor.isNativePlatform()) {
+              console.log('✅ AuthContext: Iniciando FCM después de SIGNED_IN...');
+              initFCM(session.user.id);
+            } else {
+              console.warn('⚠️ AuthContext: No es plataforma nativa, omitiendo FCM');
+            }
+          }, 500);
+          
           // El AuthRedirectHandler se encargará de la redirección
         } else if (event === 'SIGNED_OUT') {
           console.log('🔐 AuthContext: SIGNED_OUT detectado');
@@ -124,6 +141,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(session);
           setUser(session.user);
           await fetchProfile(session.user.id);
+          
+          // Inicializar FCM si hay sesión existente (solo en Android nativo)
+          // Pequeño delay para asegurar que todo esté listo
+          setTimeout(() => {
+            if (Capacitor.isNativePlatform()) {
+              console.log('✅ AuthContext: Iniciando FCM para sesión existente...');
+              initFCM(session.user.id);
+            } else {
+              console.warn('⚠️ AuthContext: No es plataforma nativa, omitiendo FCM');
+            }
+          }, 1000);
         } else {
           console.log('ℹ️ AuthContext: No hay sesión existente');
           setSession(null);
