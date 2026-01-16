@@ -11,7 +11,8 @@ interface FCMPayload {
   user_type: 'client' | 'partner';
   title: string;
   body: string;
-  data?: Record<string, string>;
+  // ❌ NO usar 'data' - convierte el mensaje en DATA message
+  // data?: Record<string, string>;
 }
 
 interface ServiceAccount {
@@ -186,7 +187,8 @@ serve(async (req) => {
     console.log('📬 send-fcm-notification: Starting...');
 
     // Parse request body
-    const { user_id, user_type, title, body, data }: FCMPayload = await req.json();
+    // ❌ NO recibir 'data' - solo title y body para NOTIFICATION message puro
+    const { user_id, user_type, title, body }: FCMPayload = await req.json();
     
     console.log('📬 Request:', { user_id, user_type, title });
 

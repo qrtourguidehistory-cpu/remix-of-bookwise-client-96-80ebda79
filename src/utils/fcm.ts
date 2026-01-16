@@ -102,14 +102,19 @@ export async function initFCM(userId: string) {
         console.error('[FCM] Error:', JSON.stringify(err, null, 2));
       });
 
-      // Listener para cuando llega una notificación
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
-        console.log('[FCM] 📬 Notificación recibida:', JSON.stringify(notification, null, 2));
-      });
+      // ⚠️ NO registrar 'pushNotificationReceived' cuando la app está cerrada
+      // Si registras este listener, Capacitor intercepta las notificaciones y
+      // Android NO las muestra automáticamente en el centro de notificaciones.
+      // Solo Android debe manejar las notificaciones cuando la app está cerrada.
+      // 
+      // Si necesitas procesar notificaciones cuando la app está ABIERTA, puedes
+      // registrar este listener solo cuando la app está en foreground, pero
+      // para notificaciones con app cerrada, NO lo registres.
 
-      // Listener para cuando se hace clic en una notificación
+      // Listener para cuando se hace clic en una notificación (cuando la app se abre)
       PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
         console.log('[FCM] 👆 Notificación clickeada:', JSON.stringify(notification, null, 2));
+        // Aquí puedes navegar a la pantalla correspondiente cuando el usuario hace clic
       });
 
       listenersRegistered = true;

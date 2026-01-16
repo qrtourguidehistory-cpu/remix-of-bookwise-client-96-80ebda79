@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
-import { initFCM } from '@/utils/fcm';
+import { initPushNotifications } from '@/utils/pushNotifications';
 
 type ClientProfileRow = Tables<"client_profiles">;
 
@@ -92,14 +92,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('✅ AuthContext: Platform:', Capacitor.getPlatform());
           console.log('✅ AuthContext: isNativePlatform:', Capacitor.isNativePlatform());
           
-          // Inicializar FCM SOLO después del login (usando @capacitor/push-notifications)
-          // Pequeño delay para asegurar que todo esté listo
+          // Inicializar push notifications SOLO después del login
           setTimeout(() => {
             if (Capacitor.isNativePlatform()) {
-              console.log('✅ AuthContext: Iniciando FCM después de SIGNED_IN...');
-              initFCM(session.user.id);
-            } else {
-              console.warn('⚠️ AuthContext: No es plataforma nativa, omitiendo FCM');
+              console.log('✅ AuthContext: Iniciando push notifications después de SIGNED_IN...');
+              initPushNotifications(session.user.id).catch((err) => {
+                console.error('❌ AuthContext: Error al inicializar push notifications:', err);
+              });
             }
           }, 500);
           
@@ -142,14 +141,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           await fetchProfile(session.user.id);
           
-          // Inicializar FCM si hay sesión existente (solo en Android nativo)
-          // Pequeño delay para asegurar que todo esté listo
+          // Inicializar push notifications si hay sesión existente
           setTimeout(() => {
             if (Capacitor.isNativePlatform()) {
-              console.log('✅ AuthContext: Iniciando FCM para sesión existente...');
-              initFCM(session.user.id);
-            } else {
-              console.warn('⚠️ AuthContext: No es plataforma nativa, omitiendo FCM');
+              console.log('✅ AuthContext: Iniciando push notifications para sesión existente...');
+              initPushNotifications(session.user.id).catch((err) => {
+                console.error('❌ AuthContext: Error al inicializar push notifications:', err);
+              });
             }
           }, 1000);
         } else {
