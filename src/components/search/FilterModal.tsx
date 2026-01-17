@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { X, Heart, MapPin, Star, Tag, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Heart, MapPin, Star, Tag, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 
 interface FilterModalProps {
@@ -14,22 +15,218 @@ interface FilterModalProps {
 export interface FilterValues {
   sortBy: "best-match" | "nearest" | "top-rated";
   maxPrice: number;
+  minPrice: number;
   hasPromotions: boolean;
   acceptsGroups: boolean;
   establishmentType: "all" | "women-only" | "men-only";
+  country: string;
+  city: string;
 }
 
 const defaultFilters: FilterValues = {
   sortBy: "best-match",
   maxPrice: 20000,
+  minPrice: 0,
   hasPromotions: false,
   acceptsGroups: false,
   establishmentType: "all",
+  country: "",
+  city: "",
 };
+
+// Datos de países y sus ciudades/provincias
+const countriesData: Record<string, string[]> = {
+  "República Dominicana": [
+    "Santo Domingo",
+    "Santo Domingo Este",
+    "Santo Domingo Oeste",
+    "Santo Domingo Norte",
+    "Santiago",
+    "La Vega",
+    "San Cristóbal",
+    "Puerto Plata",
+    "La Romana",
+    "San Pedro de Macorís",
+    "Higüey",
+    "San Francisco de Macorís",
+    "Moca",
+    "Bonao",
+    "Barahona",
+    "Azua",
+    "Bani",
+    "Mao",
+    "Nagua",
+    "Samaná",
+    "San Juan de la Maguana",
+    "Baní",
+    "Constanza",
+    "Jarabacoa",
+    "Las Terrenas",
+    "Boca Chica",
+    "Juan Dolio",
+    "Punta Cana",
+    "Bávaro",
+    "Sosúa",
+    "Cabarete",
+    "Monte Cristi"
+  ],
+  "México": [
+    "Ciudad de México",
+    "Guadalajara",
+    "Monterrey",
+    "Puebla",
+    "Tijuana",
+    "León",
+    "Juárez",
+    "Zapopan",
+    "Mérida",
+    "Cancún",
+    "Querétaro",
+    "San Luis Potosí"
+  ],
+  "Colombia": [
+    "Bogotá",
+    "Medellín",
+    "Cali",
+    "Barranquilla",
+    "Cartagena",
+    "Cúcuta",
+    "Bucaramanga",
+    "Pereira",
+    "Santa Marta",
+    "Ibagué",
+    "Manizales",
+    "Villavicencio"
+  ],
+  "Argentina": [
+    "Buenos Aires",
+    "Córdoba",
+    "Rosario",
+    "Mendoza",
+    "La Plata",
+    "San Miguel de Tucumán",
+    "Mar del Plata",
+    "Salta",
+    "Santa Fe",
+    "San Juan",
+    "Resistencia",
+    "Neuquén"
+  ],
+  "Perú": [
+    "Lima",
+    "Arequipa",
+    "Trujillo",
+    "Chiclayo",
+    "Piura",
+    "Cusco",
+    "Iquitos",
+    "Huancayo",
+    "Tacna",
+    "Ayacucho",
+    "Pucallpa",
+    "Chimbote"
+  ],
+  "Chile": [
+    "Santiago",
+    "Valparaíso",
+    "Concepción",
+    "La Serena",
+    "Antofagasta",
+    "Temuco",
+    "Rancagua",
+    "Talca",
+    "Arica",
+    "Puerto Montt",
+    "Coquimbo",
+    "Iquique"
+  ],
+  "Venezuela": [
+    "Caracas",
+    "Maracaibo",
+    "Valencia",
+    "Barquisimeto",
+    "Maracay",
+    "Ciudad Guayana",
+    "Barcelona",
+    "Maturín",
+    "Cumaná",
+    "Mérida",
+    "San Cristóbal",
+    "Cabimas"
+  ],
+  "Ecuador": [
+    "Quito",
+    "Guayaquil",
+    "Cuenca",
+    "Santo Domingo",
+    "Machala",
+    "Manta",
+    "Portoviejo",
+    "Loja",
+    "Ambato",
+    "Riobamba",
+    "Esmeraldas",
+    "Ibarra"
+  ],
+  "Guatemala": [
+    "Ciudad de Guatemala",
+    "Mixco",
+    "Villa Nueva",
+    "Quetzaltenango",
+    "Escuintla",
+    "Chinautla",
+    "Huehuetenango",
+    "Chimaltenango",
+    "Cobán",
+    "Amatitlán",
+    "Antigua Guatemala",
+    "Retalhuleu"
+  ],
+  "Costa Rica": [
+    "San José",
+    "Alajuela",
+    "Cartago",
+    "Heredia",
+    "Puntarenas",
+    "Liberia",
+    "Limón",
+    "San Isidro",
+    "Pococí",
+    "San Carlos",
+    "Desamparados",
+    "Puriscal"
+  ],
+  "Panamá": [
+    "Ciudad de Panamá",
+    "San Miguelito",
+    "Tocumen",
+    "David",
+    "Colón",
+    "La Chorrera",
+    "Santiago",
+    "Chitré",
+    "Penonomé",
+    "La Concepción",
+    "Changuinola",
+    "Aguadulce"
+  ]
+};
+
+const countries = Object.keys(countriesData);
 
 export function FilterModal({ isOpen, onClose, onApply, initialFilters }: FilterModalProps) {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<FilterValues>(initialFilters || defaultFilters);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+
+  // Actualizar ciudades cuando cambia el país
+  useEffect(() => {
+    if (filters.country) {
+      setAvailableCities(countriesData[filters.country] || []);
+    } else {
+      setAvailableCities([]);
+    }
+  }, [filters.country]);
 
   if (!isOpen) return null;
 
@@ -114,24 +311,110 @@ export function FilterModal({ isOpen, onClose, onApply, initialFilters }: Filter
 
           <div className="h-px bg-border" />
 
-          {/* Max Price */}
+          {/* Location Filters */}
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-foreground">
-                {t("filters.maxPrice", "Precio máx.")}
-              </h3>
-              <span className="text-sm font-medium text-foreground">
-                DOP {filters.maxPrice.toLocaleString()}+
-              </span>
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              {t("filters.location", "Ubicación")}
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  {t("filters.country", "País")}
+                </label>
+                <Select 
+                  value={filters.country} 
+                  onValueChange={(value) => {
+                    setFilters({ ...filters, country: value, city: "" });
+                  }}
+                >
+                  <SelectTrigger className="h-10 bg-background border-input">
+                    <SelectValue placeholder={t("filters.selectCountry", "Seleccionar país")} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] overflow-y-auto bg-popover z-[70]" position="popper" sideOffset={4}>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country} className="cursor-pointer">
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  {t("filters.city", "Ciudad")}
+                </label>
+                <Select 
+                  value={filters.city} 
+                  onValueChange={(value) => setFilters({ ...filters, city: value })}
+                  disabled={!filters.country || availableCities.length === 0}
+                >
+                  <SelectTrigger className="h-10 bg-background border-input disabled:opacity-50">
+                    <SelectValue 
+                      placeholder={
+                        !filters.country 
+                          ? t("filters.selectCountryFirst", "Primero selecciona un país")
+                          : t("filters.selectCity", "Seleccionar ciudad")
+                      } 
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[250px] overflow-y-auto bg-popover z-[70]" position="popper" sideOffset={4}>
+                    {availableCities.map((city) => (
+                      <SelectItem key={city} value={city} className="cursor-pointer">
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Slider
-              value={[filters.maxPrice]}
-              onValueChange={([value]) => setFilters({ ...filters, maxPrice: value })}
-              max={20000}
-              min={500}
-              step={500}
-              className="w-full"
-            />
+          </section>
+
+          <div className="h-px bg-border" />
+
+          {/* Price Range */}
+          <section>
+            <h3 className="text-sm font-semibold text-foreground mb-4">
+              {t("filters.priceRange", "Rango de precio")}
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs text-muted-foreground">
+                    {t("filters.minPrice", "Precio mín.")}
+                  </label>
+                  <span className="text-sm font-medium text-foreground">
+                    DOP {filters.minPrice.toLocaleString()}
+                  </span>
+                </div>
+                <Slider
+                  value={[filters.minPrice]}
+                  onValueChange={([value]) => setFilters({ ...filters, minPrice: value })}
+                  max={filters.maxPrice}
+                  min={0}
+                  step={100}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs text-muted-foreground">
+                    {t("filters.maxPrice", "Precio máx.")}
+                  </label>
+                  <span className="text-sm font-medium text-foreground">
+                    DOP {filters.maxPrice.toLocaleString()}+
+                  </span>
+                </div>
+                <Slider
+                  value={[filters.maxPrice]}
+                  onValueChange={([value]) => setFilters({ ...filters, maxPrice: value })}
+                  max={20000}
+                  min={filters.minPrice}
+                  step={500}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </section>
 
           <div className="h-px bg-border" />

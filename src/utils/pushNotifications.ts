@@ -95,7 +95,20 @@ export async function initPushNotifications(userId: string): Promise<void> {
       // Listener: Click en notificación (cuando la app se abre)
       PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
         console.log('[Push] 👆 Notificación clickeada:', notification);
-        // Aquí puedes navegar a pantallas específicas según notification.data
+        
+        const appointmentId = notification.notification.data?.appointment_id;
+        
+        if (appointmentId) {
+          // Emitir evento personalizado para navegación desde componentes React
+          const navEvent = new CustomEvent('pushNotificationNavigate', {
+            detail: { 
+              path: '/appointments',
+              appointmentId: appointmentId 
+            }
+          });
+          window.dispatchEvent(navEvent);
+          console.log('[Push] Cliente navegando a su reserva:', appointmentId);
+        }
       });
 
       // ⚠️ NO registrar 'pushNotificationReceived' cuando la app está cerrada

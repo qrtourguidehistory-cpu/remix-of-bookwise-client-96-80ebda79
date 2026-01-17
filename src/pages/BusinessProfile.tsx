@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Browser } from "@capacitor/browser";
 
 const BusinessProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -198,11 +199,39 @@ const BusinessProfile = () => {
     }
   };
 
-  const handleAddressClick = () => {
-    const address = establishment?.address || "";
-    if (address) {
-      const encodedAddress = encodeURIComponent(address);
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+  const handleAddressClick = async () => {
+    // Extraer coordenadas y dirección del negocio
+    const lat = establishment?.latitude;
+    const lng = establishment?.longitude;
+    const address = establishment?.address;
+    
+    let url = "";
+    
+    // PRIORIDAD 1: Usar coordenadas GPS si existen (más preciso)
+    if (lat && lng) {
+      // URL que fuerza a Google Maps a ir al PIN exacto
+      url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      console.log("📍 NAVEGANDO CON COORDENADAS GPS:", { lat, lng });
+      console.log("🔗 URL:", url);
+    } 
+    // FALLBACK (Plan B): Usar dirección de texto si no hay coordenadas
+    else if (address) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+      console.log("📍 NAVEGANDO CON DIRECCIÓN (sin coordenadas):", address);
+      console.log("🔗 URL:", url);
+    } 
+    // Sin ubicación disponible
+    else {
+      console.error("❌ Sin coordenadas ni dirección disponible");
+      return;
+    }
+    
+    // Abrir con Capacitor Browser (permite elegir app nativa)
+    try {
+      await Browser.open({ url, presentationStyle: 'popover' });
+    } catch (error) {
+      // Fallback para web
+      window.open(url, "_blank");
     }
   };
 

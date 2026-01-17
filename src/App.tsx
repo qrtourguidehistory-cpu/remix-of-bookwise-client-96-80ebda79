@@ -11,6 +11,7 @@ import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
 import { useBackButton } from "@/hooks/useBackButton";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { useThemeInitializer } from "@/hooks/useThemeInitializer";
+import { usePushNotificationNavigation } from "@/hooks/usePushNotificationNavigation";
 import { Loader2 } from "lucide-react";
 import { EarlyArrivalHandler } from "@/components/appointments/EarlyArrivalHandler";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -72,6 +73,7 @@ const ThemeInitializer = ({ children }: { children: React.ReactNode }) => {
 const NativeNavigationHandler = ({ children }: { children: React.ReactNode }) => {
   useBackButton();
   useDeepLinks();
+  usePushNotificationNavigation();
   return <>{children}</>;
 };
 

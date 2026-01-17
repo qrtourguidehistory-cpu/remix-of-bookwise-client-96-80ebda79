@@ -66,6 +66,7 @@ export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [historyFull, setHistoryFull] = useState(false); // Banner de historial lleno
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -344,6 +345,71 @@ export function useAppointments() {
       return { data: null, error: err.message };
     }
   };
+
+  // Cleanup old completed appointments if history exceeds 15
+  const cleanupOldAppointments = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Get all completed and cancelled appointments (history)
+      const { data: historyAppointments, error: fetchError } = await supabase
+        .from("appointments")
+        .select("id, date, start_time, status, created_at")
+        .eq("user_id", user.id)
+        .in("status", ["completed", "cancelled"])
+        .order("date", { ascending: false })
+        .order("start_time", { ascending: false });
+      
+      if (fetchError) {
+        console.error("Error fetching history for cleanup:", fetchError);
+        return;
+      }
+      
+      const historyCount = historyAppointments?.length || 0;
+      
+      // Check if history is full (15 or more)
+      if (historyCount >= 15) {
+        setHistoryFull(true);
+        
+        // Auto-cleanup: Delete all completed appointments if exactly at 15 limit
+        // This ensures we always have space for new appointments
+        if (historyCount === 15) {
+          // Get IDs of oldest completed appointments to delete
+          const appointmentsToDelete = historyAppointments
+            .filter(apt => apt.status === "completed")
+            .slice(15); // Keep first 15, delete rest
+          
+          if (appointmentsToDelete.length > 0) {
+            const idsToDelete = appointmentsToDelete.map(apt => apt.id);
+            
+            const { error: deleteError } = await supabase
+              .from("appointments")
+              .delete()
+              .in("id", idsToDelete);
+            
+            if (deleteError) {
+              console.error("Error auto-deleting old appointments:", deleteError);
+            } else {
+              console.log(`🧹 Auto-deleted ${idsToDelete.length} old completed appointments`);
+              // Refetch to update local state
+              fetchAppointments();
+            }
+          }
+        }
+      } else {
+        setHistoryFull(false);
+      }
+    } catch (error) {
+      console.error("Error cleaning up old appointments:", error);
+    }
+  }, [user?.id]);
+
+  // Check history limit whenever appointments change
+  useEffect(() => {
+    if (appointments.length > 0) {
+      cleanupOldAppointments();
+    }
+  }, [appointments.length, cleanupOldAppointments]);
 
   const cancelAppointment = async (appointmentId: string) => {
     try {
@@ -638,6 +704,7 @@ export function useAppointments() {
     cancelledAppointments,
     loading,
     error,
+    historyFull, // Exportar estado de historial lleno
     createAppointment,
     cancelAppointment,
     updateAppointment,

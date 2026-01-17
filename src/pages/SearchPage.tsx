@@ -188,9 +188,12 @@ const SearchPage = () => {
   const [filters, setFilters] = useState<FilterValues>({
     sortBy: "best-match",
     maxPrice: 20000,
+    minPrice: 0,
     hasPromotions: false,
     acceptsGroups: false,
     establishmentType: "all",
+    country: "",
+    city: "",
   });
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -241,6 +244,7 @@ const SearchPage = () => {
       images: est.main_image ? [est.main_image] : [],
       isFavorite: isFavorite(est.id),
       closingTime: "8:00 PM",
+      address: est.address || undefined, // Agregar dirección
       // Agregar todas las categorías como propiedad adicional
       allCategories: getAllCategories(est),
     }));
@@ -376,7 +380,7 @@ const SearchPage = () => {
   // IMPORTANTE: Busca en TODAS las categorías del establecimiento (category, primary_category, secondary_categories)
   const filteredBusinesses = useMemo(() => {
     return businesses.filter((b) => {
-    if (!searchQuery && !selectedCategory) return true;
+    if (!searchQuery && !selectedCategory && !filters.country && !filters.city) return true;
     
     // Obtener TODAS las categorías del negocio
     const allBusinessCategories = b.allCategories || [b.category || "other"];
@@ -409,9 +413,26 @@ const SearchPage = () => {
         )
       : true;
     
-      return matchesSearch && matchesCategory;
+    // Filtrar por ubicación (país y ciudad)
+    // MEJORADO: Búsqueda más flexible y solo por ciudad (el país no se busca en la dirección)
+    let matchesLocation = true;
+    if (filters.city) {
+      // Solo filtrar por ciudad si está seleccionada
+      const businessAddress = (b.address || "").toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Eliminar acentos
+      
+      const cityLower = filters.city.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Eliminar acentos
+      
+      // Buscar la ciudad en la dirección
+      matchesLocation = businessAddress.includes(cityLower);
+    }
+    // Si solo se seleccionó país sin ciudad, mostrar todos los resultados
+    // (asumimos que todos los establecimientos están en el país seleccionado)
+    
+      return matchesSearch && matchesCategory && matchesLocation;
     });
-  }, [businesses, searchQuery, selectedCategory, expandSearchQuery, categoryMatchesSearch, expandCategory]);
+  }, [businesses, searchQuery, selectedCategory, expandSearchQuery, categoryMatchesSearch, expandCategory, filters.country, filters.city]);
 
   const handleToggleFavorite = useCallback(async (id: string) => {
     if (!user && !isGuest) {

@@ -334,11 +334,14 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user?.id, fetchNotifications]);
 
   const markAsRead = useCallback(async (id: string) => {
-    // Update in database
+    // Update in database - marcar como leída y establecer fecha de lectura
     try {
       const { error } = await supabase
         .from("client_notifications")
-        .update({ read: true })
+        .update({ 
+          read: true,
+          updated_at: new Date().toISOString() // Guardar cuándo se marcó como leída
+        })
         .eq("id", id)
         .eq("user_id", user?.id);
       
@@ -409,6 +412,47 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   }, [notifications, user?.id]);
+
+  // Cleanup old read notifications (older than 7 days)
+  const cleanupOldNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      // Delete read notifications older than 7 days
+      const { error } = await supabase
+        .from("client_notifications")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("read", true)
+        .lt("updated_at", sevenDaysAgo.toISOString());
+      
+      if (error) {
+        console.error("🔔 [NotificationsContext] Error cleaning up old notifications:", error);
+      } else {
+        console.log("🧹 [NotificationsContext] Cleaned up old read notifications");
+        // Refetch to update local state
+        fetchNotifications();
+      }
+    } catch (error) {
+      console.error("🔔 [NotificationsContext] Error cleaning up old notifications:", error);
+    }
+  }, [user?.id, fetchNotifications]);
+
+  // Run cleanup on mount and every 24 hours
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Run cleanup immediately
+    cleanupOldNotifications();
+    
+    // Run cleanup every 24 hours
+    const interval = setInterval(cleanupOldNotifications, 24 * 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [user?.id, cleanupOldNotifications]);
 
   const deleteNotification = useCallback(async (id: string) => {
     // Delete from database
