@@ -26,6 +26,9 @@ export interface UnifiedEstablishment {
   is_active?: boolean;
   temporarily_closed?: boolean | null;
   closed_until?: string | null;
+  google_maps_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 // Cache for establishments data
@@ -51,10 +54,10 @@ export function useEstablishments() {
       setLoading(true);
       setError(null);
       
-      // Optimized query: only select needed columns (incluye secondary_categories, temporarily_closed, closed_until)
+      // Optimized query: only select needed columns (incluye secondary_categories, temporarily_closed, closed_until, google_maps_url, latitude, longitude)
       const { data: businessesData, error: businessesError } = await supabase
         .from("businesses")
-        .select("id, business_name, description, address, phone, email, average_rating, total_reviews, logo_url, cover_image_url, primary_category, category, secondary_categories, slug, is_public, is_active, temporarily_closed, closed_until, created_at")
+        .select("id, business_name, description, address, phone, email, average_rating, total_reviews, logo_url, cover_image_url, primary_category, category, secondary_categories, slug, is_public, is_active, temporarily_closed, closed_until, google_maps_url, latitude, longitude, created_at")
         .eq("is_public", true)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
@@ -73,7 +76,7 @@ export function useEstablishments() {
         address: b.address,
         phone: b.phone,
         email: b.email,
-        rating: Number(b.average_rating) || 0,
+        rating: 4.5, // Hardcoded rating for all establishments
         review_count: b.total_reviews || 0,
         main_image: b.logo_url || b.cover_image_url,
         category: b.primary_category || b.category,
@@ -84,6 +87,9 @@ export function useEstablishments() {
         is_active: b.is_active ?? true,
         temporarily_closed: b.temporarily_closed ?? false,
         closed_until: b.closed_until ?? null,
+        google_maps_url: b.google_maps_url ?? null,
+        latitude: b.latitude ?? null,
+        longitude: b.longitude ?? null,
       }));
 
       // Update cache
@@ -208,7 +214,7 @@ export function useEstablishment(id: string | undefined) {
           address: businessData.address,
           phone: businessData.phone,
           email: businessData.email,
-          rating: Number(businessData.average_rating) || 0,
+          rating: 4.5, // Hardcoded rating for all establishments
           review_count: businessData.total_reviews || 0,
           main_image: businessData.logo_url || businessData.cover_image_url,
           category: businessData.primary_category || businessData.category,
@@ -219,6 +225,9 @@ export function useEstablishment(id: string | undefined) {
           is_active: businessData.is_active ?? true,
           temporarily_closed: businessData.temporarily_closed ?? false,
           closed_until: businessData.closed_until ?? null,
+          google_maps_url: businessData.google_maps_url ?? null,
+          latitude: businessData.latitude ?? null,
+          longitude: businessData.longitude ?? null,
         };
         
         setEstablishment(mappedEstablishment);
@@ -355,6 +364,8 @@ export function useEstablishment(id: string | undefined) {
                 // CRITICAL: Update closure status immediately
                 temporarily_closed: updatedData.temporarily_closed ?? false,
                 closed_until: updatedData.closed_until ?? null,
+                latitude: updatedData.latitude ?? prev.latitude,
+                longitude: updatedData.longitude ?? prev.longitude,
               };
             });
           }

@@ -114,7 +114,20 @@ export async function initFCM(userId: string) {
       // Listener para cuando se hace clic en una notificación (cuando la app se abre)
       PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
         console.log('[FCM] 👆 Notificación clickeada:', JSON.stringify(notification, null, 2));
-        // Aquí puedes navegar a la pantalla correspondiente cuando el usuario hace clic
+        
+        const appointmentId = notification.notification.data?.appointment_id;
+        
+        if (appointmentId) {
+          // Emitir evento personalizado para navegación desde componentes React
+          const navEvent = new CustomEvent('pushNotificationNavigate', {
+            detail: { 
+              path: '/appointments',
+              appointmentId: appointmentId 
+            }
+          });
+          window.dispatchEvent(navEvent);
+          console.log('[FCM] Cliente navegando a su reserva:', appointmentId);
+        }
       });
 
       listenersRegistered = true;

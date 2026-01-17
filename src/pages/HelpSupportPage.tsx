@@ -32,10 +32,16 @@ const HelpSupportPage = () => {
   ];
 
   const handleContact = (method: string) => {
-    toast({
-      title: t("help.contactingSupport"),
-      description: `${t("help.opening")} ${method}...`,
-    });
+    if (method === "phone") {
+      window.location.href = "tel:+18092195141";
+    } else if (method === "email") {
+      window.location.href = "mailto:soporte@miturnow.com";
+    } else {
+      toast({
+        title: t("help.contactingSupport"),
+        description: `${t("help.opening")} ${method}...`,
+      });
+    }
   };
 
   return (
@@ -107,6 +113,40 @@ const HelpSupportPage = () => {
           </div>
         </section>
 
+        {/* Contact Information */}
+        <section className="animate-fade-in bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-5" style={{ animationDelay: "0.15s" }}>
+          <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">
+            Información de Contacto
+          </h2>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <Phone className="w-5 h-5 text-orange-600 mt-0.5" strokeWidth={2} />
+              <div>
+                <p className="font-medium text-gray-900">Teléfono</p>
+                <a href="tel:+18092195141" className="text-orange-600 hover:text-orange-700 text-sm">
+                  +1 809-219-5141
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Mail className="w-5 h-5 text-orange-600 mt-0.5" strokeWidth={2} />
+              <div>
+                <p className="font-medium text-gray-900">Email</p>
+                <a href="mailto:soporte@miturnow.com" className="text-orange-600 hover:text-orange-700 text-sm">
+                  soporte@miturnow.com
+                </a>
+              </div>
+            </div>
+            <div className="pt-2 border-t border-orange-200">
+              <p className="text-xs text-gray-600">
+                <span className="font-semibold">Horario de atención:</span><br />
+                Lunes a Viernes, 9:00 AM - 6:00 PM<br />
+                (Hora del Este)
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Resources */}
         <section className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
@@ -153,9 +193,9 @@ const HelpSupportPage = () => {
         </section>
 
         {/* App Info */}
-        <section className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.25s" }}>
-          <p className="text-sm text-muted-foreground">Bookwise v1.0.0</p>
-          <p className="text-xs text-muted-foreground">© 2024 Bookwise. {t("common.yes") === "Sí" ? "Todos los derechos reservados." : "All rights reserved."}</p>
+        <section className="text-center space-y-2 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <p className="text-sm text-muted-foreground">Mí Turnow v1.0.0</p>
+          <p className="text-xs text-muted-foreground">© 2025 Mí Turnow. Todos los derechos reservados.</p>
         </section>
       </main>
     </div>

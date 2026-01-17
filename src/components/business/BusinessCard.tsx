@@ -20,6 +20,7 @@ export interface Business {
   isFavorite?: boolean;
   closingTime?: string;
   allCategories?: string[]; // Todas las categorías del establecimiento (category, primary_category, secondary_categories)
+  address?: string; // Dirección del establecimiento
 }
 
 interface BusinessCardProps {
@@ -65,15 +66,23 @@ export const BusinessCard = memo(function BusinessCard({ business, onToggleFavor
           <h3 className="font-semibold text-lg text-gray-900 leading-tight flex-1">
             {business.name}
           </h3>
-          <div className="flex items-center gap-1 shrink-0">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            <span className="font-semibold text-gray-900 text-sm">
-              {business.rating.toFixed(1)}
-            </span>
-            {business.reviewCount > 0 && (
-              <span className="text-gray-600 text-sm font-normal">
-                ({formatReviewCount(business.reviewCount)})
+          <div className="flex flex-col items-end gap-0.5 shrink-0">
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="font-semibold text-gray-900 text-sm">
+                {business.rating.toFixed(1)}
               </span>
+              {business.reviewCount > 0 && (
+                <span className="text-gray-600 text-sm font-normal">
+                  ({formatReviewCount(business.reviewCount)})
+                </span>
+              )}
+            </div>
+            {/* Address below rating */}
+            {business.address && (
+              <p className="text-[10px] text-gray-500 leading-tight text-right line-clamp-1 max-w-[120px]">
+                {business.address}
+              </p>
             )}
           </div>
         </div>

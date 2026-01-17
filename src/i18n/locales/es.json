@@ -115,7 +115,8 @@
     "min": "min",
     "notFound": "Establecimiento no encontrado",
     "noImage": "Sin imagen",
-    "noServices": "No hay servicios disponibles"
+    "noServices": "No hay servicios disponibles",
+    "noLocationAvailable": "No hay ubicación disponible para este negocio"
   },
   "booking": {
     "title": "Reservar Cita",

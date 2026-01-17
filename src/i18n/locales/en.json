@@ -115,7 +115,8 @@
     "min": "min",
     "notFound": "Establishment not found",
     "noImage": "No image",
-    "noServices": "No services available"
+    "noServices": "No services available",
+    "noLocationAvailable": "No location available for this business"
   },
   "booking": {
     "title": "Book Appointment",

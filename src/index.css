@@ -209,3 +209,73 @@
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* Estilos para Mapbox GL */
+.mapboxgl-popup {
+  max-width: 300px !important;
+}
+
+.mapboxgl-popup-content {
+  background-color: hsl(var(--card)) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0 !important;
+}
+
+.mapboxgl-popup-close-button {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 24px !important;
+  padding: 8px !important;
+  right: 4px !important;
+  top: 4px !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  color: hsl(var(--foreground)) !important;
+  background-color: transparent !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: hsl(var(--card)) !important;
+}
+
+/* Control de geolocalización */
+.mapboxgl-ctrl-geolocate {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.mapboxgl-ctrl-geolocate:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+}
+
+.dark .mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+/* Controles de navegación */
+.mapboxgl-ctrl-group {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  background-color: hsl(var(--card)) !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+}
+
+.dark .mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}

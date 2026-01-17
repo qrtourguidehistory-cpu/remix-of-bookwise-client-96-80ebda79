@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const AppointmentsPage = () => {
     upcomingAppointments,
     pastAppointments,
     loading,
+    historyFull, // Estado de historial lleno
     cancelAppointment,
     deleteAppointment,
   } = useAppointments();
@@ -114,6 +115,23 @@ const AppointmentsPage = () => {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-8">
+        {/* Banner de Historial Lleno */}
+        {historyFull && pastAppointments.length >= 15 && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg animate-fade-in">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-800">
+                  Su almacén de historial de citas está lleno
+                </h3>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Has alcanzado el límite de 15 citas en el historial. Por favor, elimina citas antiguas para mantener un historial organizado. Las citas completadas más antiguas se eliminarán automáticamente al hacer nuevas reservas.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Upcoming */}
         <section className="animate-fade-in">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
