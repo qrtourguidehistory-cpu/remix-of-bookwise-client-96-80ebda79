@@ -22,7 +22,8 @@ android {
         release {
             def keystorePropertiesFile = rootProject.file("keystore.properties")
             def keystoreProperties = new Properties()
-            
+            storeFile file('C:\\Users\\laptop\\Desktop\\LLAVE CLIENTE TURNOW\\llave_cliente_miturnow.jks')
+
             // Intentar usar debug keystore si no hay keystore.properties
             if (keystorePropertiesFile.exists()) {
                 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
@@ -41,13 +42,19 @@ android {
                 }
             }
         }
+        config_cliente {
+            storeFile file('C:\\Users\\laptop\\Desktop\\LLAVE CLIENTE TURNOW\\llave_cliente_miturnow.jks')
+            storePassword '1Delarosa'
+            keyAlias 'cliente_prod'
+            keyPassword '1Delarosa'
+        }
     }
     
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.config_cliente
         }
     }
 }

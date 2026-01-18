@@ -2,14 +2,31 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Use direct values for Capacitor compatibility (VITE_ env vars don't work reliably in native apps)
-const SUPABASE_URL = "https://rdznelijpliklisnflfm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkem5lbGlqcGxpa2xpc25mbGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjY4MzAsImV4cCI6MjA3ODIwMjgzMH0.o8G-wYYIN0Paw20YP4dSJcL5mf2mUdrfcWRfMauFjGQ";
+// Variables de entorno - Inyectadas por Vite en build-time
+// Para Capacitor/Android, estas variables se inyectan en el bundle mediante vite.config.ts
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_PUBLISHABLE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// Logs para Logcat de Android Studio - visible en debugging
+console.log('[Supabase] Intentando conectar a:', SUPABASE_URL || 'URL no configurada');
+console.log('[Supabase] Key presente:', SUPABASE_PUBLISHABLE_KEY ? 'Sí' : 'No');
+
+// Validación sin lanzar errores que rompan la app
+if (!SUPABASE_URL) {
+  console.warn('[Supabase] ⚠️ VITE_SUPABASE_URL no está configurada. La app puede no funcionar correctamente.');
+}
+
+if (!SUPABASE_PUBLISHABLE_KEY) {
+  console.warn('[Supabase] ⚠️ VITE_SUPABASE_ANON_KEY o VITE_SUPABASE_PUBLISHABLE_KEY no están configuradas. La autenticación puede fallar.');
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+// Solo crear el cliente si tenemos las credenciales mínimas
+// Esto evita que la app se quede en blanco si faltan variables
+export const supabase = SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+  ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
@@ -24,4 +41,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     // Timeout para conexiones realtime (20 segundos)
     timeout: 20000,
   },
-});
+})
+  : (() => {
+      console.error('[Supabase] ❌ No se puede inicializar el cliente de Supabase. Faltan credenciales.');
+      // Retornar un mock client para evitar crashes - las funciones fallarán graciosamente
+      return null as any;
+    })();

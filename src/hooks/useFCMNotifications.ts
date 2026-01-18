@@ -282,8 +282,14 @@ export const useFCMNotifications = (userId: string | undefined) => {
     try {
       console.log('📱 FCM: Removing token for user:', userId);
       
-      const supabaseUrl = 'https://rdznelijpliklisnflfm.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkem5lbGlqcGxpa2xpc25mbGZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjY4MzAsImV4cCI6MjA3ODIwMjgzMH0.o8G-wYYIN0Paw20YP4dSJcL5mf2mUdrfcWRfMauFjGQ';
+      // Usar variables de entorno en lugar de valores hardcodeados
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_PUBLISHABLE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.warn('[FCM] ⚠️ Credenciales de Supabase no configuradas. No se puede remover el token.');
+        return;
+      }
       
       const { data: { session } } = await supabase.auth.getSession();
       

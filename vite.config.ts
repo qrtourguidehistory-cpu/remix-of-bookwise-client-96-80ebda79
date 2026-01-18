@@ -1,17 +1,29 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: "./", // Use relative paths for Capacitor compatibility
+export default defineConfig(({ mode }) => {
+  // Cargar variables de entorno
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  // Filtrar solo variables que empiezan con VITE_
+  const viteEnv: Record<string, string> = {};
+  Object.keys(env).forEach((key) => {
+    if (key.startsWith('VITE_')) {
+      viteEnv[`import.meta.env.${key}`] = JSON.stringify(env[key]);
+    }
+  });
+
+  return {
+    base: "./", // Use relative paths for Capacitor compatibility - VITAL para Android
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [
+    plugins: [
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
@@ -101,9 +113,15 @@ export default defineConfig(({ mode }) => ({
       }
     })
   ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-}));
+    define: {
+      // Inyectar explícitamente todas las variables VITE_ en el bundle
+      // Esto asegura que estén disponibles en runtime para Capacitor/Android
+      ...viteEnv,
+    },
+  };
+});

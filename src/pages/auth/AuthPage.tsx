@@ -8,7 +8,7 @@ import { PhoneInput, countries } from '@/components/auth/PhoneInput';
 import { Country } from '@/components/auth/CountrySelector';
 import { ArrowLeft, Globe, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -36,29 +36,30 @@ const AuthPage = () => {
         const msg = error.message || 'Failed to sign in with Google';
         // Detect reauth requirement and fallback to web OAuth deep link
         if (msg.includes('[16]') || msg.toLowerCase().includes('reauth')) {
-          toast('Se requiere reautenticación; abriendo flujo de Google en navegador...');
+          toast('Se requiere reautenticación; abriendo flujo de Google en navegador...', { id: 'reauth-notificacion' });
           try {
             const { supabase } = await import('@/integrations/supabase/client');
-            const redirectTo = 'bookwise://login-callback';
+            const redirectTo = 'com.bookwise.client://login-callback';
+            console.log('🔐 Usando redirectTo (AuthPage fallback):', redirectTo);
             const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo, skipBrowserRedirect: true },
             });
             if (oauthError) {
-              toast.error(oauthError.message || 'Failed to open Google OAuth fallback');
+              toast.error(oauthError.message || 'Failed to open Google OAuth fallback', { id: 'oauth-error-google' });
             } else if (data?.url) {
               const { Browser } = await import('@capacitor/browser');
               await Browser.open({ url: data.url });
               console.log('🔐 OAuth web fallback abierto');
             } else {
-              toast.error('No se pudo generar URL de OAuth web');
+              toast.error('No se pudo generar URL de OAuth web', { id: 'oauth-error-url' });
             }
           } catch (fallbackErr) {
             console.error('Fallback a OAuth web falló:', fallbackErr);
-            toast.error('Fallback a OAuth web falló');
+            toast.error('Fallback a OAuth web falló', { id: 'oauth-error-fallback' });
           }
         } else {
-          toast.error(msg);
+          toast.error(msg, { id: 'auth-error-principal' });
         }
         setIsLoading(null);
       } else {
@@ -69,7 +70,7 @@ const AuthPage = () => {
         console.log('🔐 OAuth iniciado, esperando callback de deep link...');
       }
     } catch (error) {
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred', { id: 'google-auth-error-unexpected' });
       setIsLoading(null);
     }
   };
@@ -79,7 +80,7 @@ const AuthPage = () => {
     try {
       const { error } = await signInWithApple();
       if (error) {
-        toast.error(error.message || 'Failed to sign in with Apple');
+        toast.error(error.message || 'Failed to sign in with Apple', { id: 'apple-auth-error' });
         setIsLoading(null);
       } else {
         // OAuth flow started - browser will open
@@ -88,7 +89,7 @@ const AuthPage = () => {
         console.log('🍎 OAuth iniciado, esperando callback de deep link...');
       }
     } catch (error) {
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred', { id: 'apple-auth-error-unexpected' });
       setIsLoading(null);
     }
   };
@@ -99,7 +100,7 @@ const AuthPage = () => {
 
   const handlePhoneContinue = async () => {
     if (!phone || phone.replace(/\D/g, '').length < 10) {
-      toast.error('Please enter a valid phone number');
+      toast.error('Please enter a valid phone number', { id: 'phone-validation-error' });
       return;
     }
 
@@ -108,7 +109,7 @@ const AuthPage = () => {
     
     const { error } = await signInWithPhone(fullPhone);
     if (error) {
-      toast.error(error.message || 'Failed to send verification code');
+      toast.error(error.message || 'Failed to send verification code', { id: 'phone-send-error' });
       setIsLoading(null);
     } else {
       navigate('/auth/verify', { state: { phone: fullPhone } });

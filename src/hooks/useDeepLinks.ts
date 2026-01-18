@@ -13,20 +13,54 @@ const handleOAuthCallback = async (
   console.log('🔐 URL recibida:', url);
   
   try {
-    // Extraer tokens del hash de la URL
+    console.log('🔐 Procesando callback URL:', url);
+    
+    // Intentar extraer tokens del hash primero (método estándar de Supabase)
+    let hashParams: URLSearchParams | null = null;
     const hashMatch = url.match(/#([^#]+)$/);
-    if (!hashMatch) {
-      console.error('❌ No se encontró hash en la URL');
+    if (hashMatch) {
+      hashParams = new URLSearchParams(hashMatch[1]);
+      console.log('✅ Hash encontrado en URL');
+    } else {
+      // Si no hay hash, intentar query parameters (algunos callbacks vienen así)
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.search) {
+          hashParams = new URLSearchParams(urlObj.search);
+          console.log('✅ Query parameters encontrados en URL');
+        }
+      } catch (e) {
+        console.warn('⚠️ No se pudo parsear como URL, intentando extracción manual');
+      }
+    }
+
+    if (!hashParams) {
+      console.error('❌ No se encontró hash ni query parameters en la URL');
+      console.error('❌ URL completa:', url);
       return false;
     }
 
-    const hashParams = new URLSearchParams(hashMatch[1]);
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
     const type = hashParams.get('type');
+    const errorParam = hashParams.get('error');
+    const errorDescription = hashParams.get('error_description');
+
+    // Verificar si hay errores de OAuth
+    if (errorParam) {
+      console.error('❌ Error en callback OAuth:', errorParam);
+      console.error('❌ Descripción:', errorDescription || 'Sin descripción');
+      return false;
+    }
 
     if (!accessToken || !refreshToken) {
       console.error('❌ No se encontraron tokens en la URL');
+      console.error('❌ Parámetros encontrados:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        type,
+        allParams: Array.from(hashParams.entries())
+      });
       return false;
     }
 
@@ -63,8 +97,8 @@ const handleOAuthCallback = async (
       
       // Mostrar toast de éxito
       try {
-        const { toast } = await import('sonner');
-        toast.success('¡Sesión iniciada exitosamente!');
+        const { toast } = await import('@/components/ui/sonner');
+        toast.success('¡Sesión iniciada exitosamente!', { id: 'deeplink-session-success' });
       } catch (toastError) {
         console.warn('⚠️ No se pudo mostrar toast:', toastError);
       }
@@ -120,8 +154,16 @@ export const useDeepLinks = () => {
           try {
             const url = new URL(event.url);
             
-            if (url.protocol === 'bookwise:' && url.host === 'login-callback') {
-              console.log('✅ Callback OAuth detectado');
+            // Capturar callbacks OAuth con el esquema correcto (deep link)
+            if ((url.protocol === 'com.bookwise.client:' || url.protocol === 'bookwise:') && url.host === 'login-callback') {
+              console.log('✅ Callback OAuth detectado (deep link):', event.url);
+              await handleOAuthCallback(event.url, supabase, navigate);
+              return;
+            }
+            
+            // Capturar URLs HTTPS de Supabase OAuth callback
+            if (url.protocol === 'https:' && url.hostname.includes('supabase.co') && url.pathname.includes('/auth/v1/callback')) {
+              console.log('✅ Callback OAuth detectado (Supabase HTTPS):', event.url);
               await handleOAuthCallback(event.url, supabase, navigate);
               return;
             }
@@ -133,7 +175,11 @@ export const useDeepLinks = () => {
           } catch (e) {
             console.log('⚠️ Error al parsear URL:', e);
             
-            if (event.url.includes('bookwise://login-callback')) {
+            // Detectar callback OAuth por contenido de URL (fallback)
+            if (event.url.includes('com.bookwise.client://login-callback') || 
+                event.url.includes('bookwise://login-callback') ||
+                (event.url.includes('supabase.co') && event.url.includes('/auth/v1/callback'))) {
+              console.log('✅ Callback OAuth detectado (fallback):', event.url);
               await handleOAuthCallback(event.url, supabase, navigate);
               return;
             }
@@ -155,8 +201,12 @@ export const useDeepLinks = () => {
             try {
               const launchUrl = await App.getLaunchUrl();
               
-              if (launchUrl?.url && launchUrl.url.includes('bookwise://login-callback')) {
-                console.log('🚀 URL de lanzamiento OAuth detectada');
+              if (launchUrl?.url && (
+                launchUrl.url.includes('com.bookwise.client://login-callback') || 
+                launchUrl.url.includes('bookwise://login-callback') ||
+                (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))
+              )) {
+                console.log('🚀 URL de lanzamiento OAuth detectada:', launchUrl.url);
                 await handleOAuthCallback(launchUrl.url, supabase, navigate);
               }
             } catch (error) {
@@ -178,7 +228,10 @@ export const useDeepLinks = () => {
         if (launchUrl?.url && mountedRef.current) {
           console.log('🚀 URL de lanzamiento inicial:', launchUrl.url);
           
-          if (launchUrl.url.includes('bookwise://login-callback')) {
+          if (launchUrl.url.includes('com.bookwise.client://login-callback') || 
+              launchUrl.url.includes('bookwise://login-callback') ||
+              (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))) {
+            console.log('🚀 URL de lanzamiento OAuth detectada (inicial):', launchUrl.url);
             await handleOAuthCallback(launchUrl.url, supabase, navigate);
             return;
           }
