@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { z } from 'zod';
 
 const registerSchema = z.object({
@@ -58,7 +58,7 @@ const RegisterPage = () => {
     }
 
     if (!acceptTerms) {
-      toast.error('Please accept the Terms of Use and Privacy Policy');
+      toast.error('Please accept the Terms of Use and Privacy Policy', { id: 'register-terms-error' });
       return;
     }
 
@@ -70,13 +70,13 @@ const RegisterPage = () => {
 
     if (error) {
       if (error.message.includes('already registered')) {
-        toast.error('This email is already registered. Please sign in instead.');
+        toast.error('This email is already registered. Please sign in instead.', { id: 'register-email-exists' });
       } else {
-        toast.error(error.message || 'Failed to create account');
+        toast.error(error.message || 'Failed to create account', { id: 'register-error-principal' });
       }
       setIsLoading(false);
     } else {
-      toast.success('Account created! Please check your email to verify.');
+      toast.success('Account created! Please check your email to verify.', { id: 'register-success' });
       navigate('/');
     }
   };

@@ -6,54 +6,156 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface WebPushSubscription {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
+interface ServiceAccount {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+}
+
+// Base64URL encode helper
+function base64UrlEncode(data: string): string {
+  const base64 = btoa(data);
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// Convert ArrayBuffer to base64url
+function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return base64UrlEncode(binary);
+}
+
+// Parse PEM private key
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const b64 = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\n/g, '');
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+// Get Firebase access token using Service Account
+async function getFirebaseAccessToken(serviceAccount: ServiceAccount): Promise<string> {
+  console.log('🔑 Getting Firebase access token...');
+  
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: serviceAccount.client_email,
+    sub: serviceAccount.client_email,
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now,
+    exp: now + 3600,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging'
   };
+
+  const headerB64 = base64UrlEncode(JSON.stringify(header));
+  const payloadB64 = base64UrlEncode(JSON.stringify(payload));
+  const unsignedToken = `${headerB64}.${payloadB64}`;
+
+  const keyData = pemToArrayBuffer(serviceAccount.private_key);
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    keyData,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    new TextEncoder().encode(unsignedToken)
+  );
+
+  const signatureB64 = arrayBufferToBase64Url(signature);
+  const jwt = `${unsignedToken}.${signatureB64}`;
+
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ OAuth token error:', errorText);
+    throw new Error(`Failed to get Firebase access token: ${errorText}`);
+  }
+
+  const data = await response.json();
+  console.log('✅ Firebase access token obtained');
+  return data.access_token;
 }
 
-interface NotificationPayload {
-  title: string;
-  body: string;
-  icon?: string;
-  badge?: string;
-  data?: Record<string, unknown>;
-  tag?: string;
-}
+// Send FCM notification via HTTP v1 API
+async function sendFCMMessage(
+  token: string,
+  title: string,
+  body: string,
+  projectId: string,
+  accessToken: string
+): Promise<{ success: boolean; error?: string }> {
+  const fcmPayload = {
+    message: {
+      token,
+      notification: {
+        title,
+        body
+      }
+    }
+  };
+  
+  console.log('📤 Sending FCM message to token:', token.substring(0, 30) + '...');
 
-// Web Push implementation using web-push protocol
-async function sendWebPushNotification(
-  subscription: WebPushSubscription,
-  payload: NotificationPayload,
-  vapidPublicKey: string,
-  vapidPrivateKey: string,
-  vapidSubject: string
-): Promise<boolean> {
   try {
-    // For Web Push, we need to use the Web Push protocol
-    // This is a simplified implementation - in production, use web-push library
-    const payloadString = JSON.stringify(payload);
-    
-    const response = await fetch(subscription.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'TTL': '86400', // 24 hours
-      },
-      body: payloadString,
-    });
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(fcmPayload),
+      }
+    );
 
     if (!response.ok) {
-      console.error('Push notification failed:', response.status, await response.text());
-      return false;
+      const errorText = await response.text();
+      console.error('❌ FCM send error:', errorText);
+      
+      if (errorText.includes('UNREGISTERED') || errorText.includes('INVALID_ARGUMENT')) {
+        return { success: false, error: 'invalid_token' };
+      }
+      
+      return { success: false, error: errorText };
     }
 
-    return true;
+    const result = await response.json();
+    console.log('✅ FCM message sent:', result.name);
+    return { success: true };
   } catch (error) {
-    console.error('Error sending push notification:', error);
-    return false;
+    console.error('❌ FCM send exception:', error);
+    return { success: false, error: String(error) };
   }
 }
 
@@ -66,33 +168,78 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY') || '';
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY') || '';
-    const vapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@bookwise.com';
-
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { user_id, title, body, data, notification_id } = await req.json();
+    const { user_id, title, body, data, notification_id, role } = await req.json();
 
-    console.log('Processing push notification for user:', user_id);
-
-    // Get user's push subscriptions
-    const { data: subscriptions, error: subError } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .eq('user_id', user_id);
-
-    if (subError) {
-      console.error('Error fetching subscriptions:', subError);
-      throw new Error('Failed to fetch push subscriptions');
+    if (!user_id || !title || !body) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing required fields: user_id, title, body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (!subscriptions || subscriptions.length === 0) {
-      console.log('No push subscriptions found for user:', user_id);
+    console.log('📬 Processing push notification for user:', user_id);
+    console.log('📬 User role:', role || 'client (default)');
+
+    // Determine which Firebase service account to use based on role
+    const isPartner = role === 'partner';
+    const serviceAccountSecretName = isPartner 
+      ? 'FIREBASE_SERVICE_ACCOUNT_PARTNER' 
+      : 'FIREBASE_SERVICE_ACCOUNT_CLIENT';
+    
+    console.log('📬 Using Firebase service account:', serviceAccountSecretName);
+
+    // Get Firebase service account based on role
+    const serviceAccountJson = Deno.env.get(serviceAccountSecretName);
+    if (!serviceAccountJson) {
+      console.error(`❌ ${serviceAccountSecretName} not configured`);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'No push subscriptions found for user' 
+          error: `Firebase service account not configured for role: ${role || 'client'}. Please configure ${serviceAccountSecretName}.` 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const serviceAccount: ServiceAccount = JSON.parse(serviceAccountJson);
+    console.log('📬 Firebase project:', serviceAccount.project_id);
+    console.log('📬 Firebase project ID from service account:', serviceAccount.project_id);
+    
+    // Use the project_id from the correct Service Account (already determined by role)
+    const firebaseProjectId = serviceAccount.project_id;
+
+    // Determine user type from request (role takes precedence over data.user_type)
+    // This determines which table to query for FCM tokens
+    const user_type = role || data?.user_type || 'client';
+    const isPartnerUser = user_type === 'partner';
+    const tableName = isPartnerUser ? 'partner_devices' : 'client_devices';
+    
+    console.log(`📬 User type determined: ${user_type}`);
+    console.log(`📬 Using table: ${tableName}`);
+    console.log(`📬 Fetching FCM tokens from ${tableName} for user ${user_id}`);
+
+    // Get FCM tokens from client_devices or partner_devices table
+    const { data: devices, error: devicesError } = await supabase
+      .from(tableName)
+      .select('id, fcm_token, platform')
+      .eq('user_id', user_id);
+
+    if (devicesError) {
+      console.error('❌ Error fetching devices:', devicesError);
+      console.error('❌ Error details:', JSON.stringify(devicesError, null, 2));
+      throw new Error(`Failed to fetch devices from ${tableName}: ${devicesError.message}`);
+    }
+
+    if (!devices || devices.length === 0) {
+      console.log(`⚠️ No devices found in ${tableName} for user:`, user_id);
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          sent: 0,
+          message: `No devices registered in ${tableName} for this user` 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -101,55 +248,54 @@ serve(async (req) => {
       );
     }
 
-    const payload: NotificationPayload = {
-      title,
-      body,
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      data: data || {},
-      tag: notification_id || `notification-${Date.now()}`,
-    };
+    console.log(`✅ Found ${devices.length} device(s) for user ${user_id}`);
 
+    // Get Firebase access token
+    const accessToken = await getFirebaseAccessToken(serviceAccount);
+
+    // Send FCM notifications to all devices
     let successCount = 0;
     let failCount = 0;
-    const failedEndpoints: string[] = [];
+    const invalidTokenIds: string[] = [];
 
-    // Send to all subscriptions
-    for (const sub of subscriptions) {
-      const subscription: WebPushSubscription = {
-        endpoint: sub.endpoint,
-        keys: sub.keys as { p256dh: string; auth: string },
-      };
-
-      const success = await sendWebPushNotification(
-        subscription,
-        payload,
-        vapidPublicKey,
-        vapidPrivateKey,
-        vapidSubject
+    for (const device of devices) {
+      console.log(`📤 Sending FCM to device ${device.id} (platform: ${device.platform})...`);
+      
+      // Use project_id from the Service Account (already determined by role)
+      const result = await sendFCMMessage(
+        device.fcm_token,
+        title,
+        body,
+        firebaseProjectId, // Uses project_id from the correct Service Account based on role
+        accessToken
       );
 
-      if (success) {
+      if (result.success) {
         successCount++;
-        console.log('Push sent successfully to:', sub.endpoint.substring(0, 50) + '...');
+        console.log(`✅ FCM sent successfully to device ${device.id}`);
       } else {
         failCount++;
-        failedEndpoints.push(sub.endpoint);
-        console.log('Failed to send push to:', sub.endpoint.substring(0, 50) + '...');
+        if (result.error === 'invalid_token') {
+          invalidTokenIds.push(device.id);
+          console.log(`⚠️ Invalid token for device ${device.id}, will be cleaned up`);
+        } else {
+          console.error(`❌ Failed to send FCM to device ${device.id}:`, result.error);
+        }
       }
     }
 
-    // Clean up failed endpoints (expired subscriptions)
-    if (failedEndpoints.length > 0) {
+    // Clean up invalid tokens
+    if (invalidTokenIds.length > 0) {
+      console.log(`🧹 Cleaning up ${invalidTokenIds.length} invalid token(s)`);
       const { error: deleteError } = await supabase
-        .from('push_subscriptions')
+        .from(tableName)
         .delete()
-        .in('endpoint', failedEndpoints);
+        .in('id', invalidTokenIds);
 
       if (deleteError) {
-        console.error('Error cleaning up expired subscriptions:', deleteError);
+        console.error('❌ Error cleaning up invalid tokens:', deleteError);
       } else {
-        console.log('Cleaned up', failedEndpoints.length, 'expired subscriptions');
+        console.log(`✅ Cleaned up ${invalidTokenIds.length} invalid token(s)`);
       }
     }
 

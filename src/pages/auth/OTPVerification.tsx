@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 
 const OTPVerification = () => {
   const navigate = useNavigate();
@@ -41,11 +41,11 @@ const OTPVerification = () => {
     const { error } = await verifyOTP(phone, code);
     
     if (error) {
-      toast.error(error.message || 'Invalid verification code');
+      toast.error(error.message || 'Invalid verification code', { id: 'otp-verification-error' });
       setOtp('');
       setIsLoading(false);
     } else {
-      toast.success('Phone verified successfully!');
+      toast.success('Phone verified successfully!', { id: 'otp-verification-success' });
       navigate('/');
     }
   };
@@ -58,10 +58,10 @@ const OTPVerification = () => {
     
     const { error } = await signInWithPhone(phone);
     if (error) {
-      toast.error(error.message || 'Failed to resend code');
+      toast.error(error.message || 'Failed to resend code', { id: 'otp-resend-error' });
       setCanResend(true);
     } else {
-      toast.success('Verification code sent!');
+      toast.success('Verification code sent!', { id: 'otp-resend-success' });
     }
   };
 

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/sonner';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -45,13 +45,13 @@ const EmailAuthPage = () => {
 
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        toast.error('Invalid email or password');
+        toast.error('Invalid email or password', { id: 'email-auth-credentials-error' });
       } else {
-        toast.error(error.message || 'Failed to sign in');
+        toast.error(error.message || 'Failed to sign in', { id: 'email-auth-error-principal' });
       }
       setIsLoading(false);
     } else {
-      toast.success('Signed in successfully!');
+      toast.success('Signed in successfully!', { id: 'email-auth-success' });
       navigate('/');
     }
   };

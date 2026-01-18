@@ -10,8 +10,8 @@ import { MapPin, Loader2 } from "lucide-react";
 
 type Business = Tables<"businesses">;
 
-// Token de Mapbox
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "pk.eyJ1IjoibWl0b3Vybm93IiwiYSI6ImNta2hzYnN3aTBtaHIzZHB1MHgydTZ1OWMifQ.I90chYaZczEFiJ33M7hdxw";
+// Token de Mapbox - SOLO desde variable de entorno (sin fallback hardcodeado)
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface MiTurnowMapProps {
   className?: string;
@@ -56,6 +56,14 @@ const MiTurnowMap = ({ className = "" }: MiTurnowMapProps) => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
+    // Validar que el token esté disponible
+    if (!MAPBOX_TOKEN) {
+      console.error('[Mapbox] ❌ VITE_MAPBOX_ACCESS_TOKEN no está configurada. El mapa no se puede inicializar.');
+      setError('Token de Mapbox no configurado. Por favor, contacta al administrador.');
+      setLoading(false);
+      return;
+    }
+
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     // Estilo del mapa según tema
@@ -89,10 +97,9 @@ const MiTurnowMap = ({ className = "" }: MiTurnowMapProps) => {
     // Controles de zoom
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    // Activar geolocalización automáticamente
-    map.current.on("load", () => {
-      geolocateControl.trigger();
-    });
+    // NO activar geolocalización automáticamente - el usuario debe hacer clic explícitamente
+    // Esto cumple con las políticas de privacidad de Google Play
+    // El botón de geolocalización está disponible pero no se activa automáticamente
 
     return () => {
       map.current?.remove();

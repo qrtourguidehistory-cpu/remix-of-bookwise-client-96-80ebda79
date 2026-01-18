@@ -1,10 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, DollarSign, Scissors, Mail } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, User, DollarSign, Scissors, Mail, FileText } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
 import { useTranslation } from "react-i18next";
+import { generateReceiptPDF } from "@/utils/generateReceiptPDF";
+import { toast } from "@/hooks/use-toast";
 
 interface AppointmentDetailDialogProps {
   open: boolean;
@@ -56,6 +58,43 @@ export function AppointmentDetailDialog({
   const { t } = useTranslation();
   
   if (!appointment) return null;
+
+  // Función para generar recibo PDF
+  const handleGenerateReceipt = () => {
+    try {
+      // Calcular totales
+      const totalPriceRD = appointment.services?.reduce((sum, service) => {
+        return sum + (service.price_rd || service.price || 0);
+      }, 0) || appointment.price_rd || appointment.price || 0;
+
+      const totalPriceUSD = appointment.services?.reduce((sum, service) => {
+        return sum + (service.price_usd || 0);
+      }, 0) || appointment.price_usd || 0;
+
+      generateReceiptPDF({
+        businessName: appointment.establishment?.name || 'Establecimiento',
+        clientName: appointment.client_name,
+        date: appointment.date,
+        startTime: appointment.start_time,
+        services: appointment.services || [],
+        totalPriceRD: Number(totalPriceRD),
+        totalPriceUSD: Number(totalPriceUSD),
+        appointmentId: appointment.id,
+      });
+
+      toast({
+        title: "Recibo generado",
+        description: "El recibo PDF se ha descargado correctamente",
+      });
+    } catch (error) {
+      console.error('[AppointmentDetailDialog] Error al generar recibo:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el recibo. Por favor, intenta de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const isPast = appointment.date && new Date(appointment.date) < new Date();
   const isCancelled = appointment.status === "cancelled";
@@ -267,38 +306,50 @@ export function AppointmentDetailDialog({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mt-6">
-          {!isPast && !isCancelled && onCancel && (
-            <Button
-              variant="outline"
-              className="flex-1 text-destructive hover:text-destructive"
-              onClick={() => {
-                onCancel(appointment.id);
-                onOpenChange(false);
-              }}
-            >
-              Cancelar Cita
-            </Button>
-          )}
-          {(isPast || isCancelled) && onRebook && (
-            <Button
-              variant="coral"
-              className="flex-1"
-              onClick={() => {
-                onRebook(appointment);
-                onOpenChange(false);
-              }}
-            >
-              Reservar de nuevo
-            </Button>
-          )}
+        <div className="flex flex-col gap-3 mt-6">
+          {/* Botón de Recibo PDF - Visible siempre */}
           <Button
-            variant="secondary"
-            onClick={() => onOpenChange(false)}
-            className={!isPast && !isCancelled ? "" : "flex-1"}
+            variant="outline"
+            className="w-full"
+            onClick={handleGenerateReceipt}
           >
-            Cerrar
+            <FileText className="w-4 h-4 mr-2" />
+            Generar Recibo PDF
           </Button>
+          
+          <div className="flex gap-3">
+            {!isPast && !isCancelled && onCancel && (
+              <Button
+                variant="outline"
+                className="flex-1 text-destructive hover:text-destructive"
+                onClick={() => {
+                  onCancel(appointment.id);
+                  onOpenChange(false);
+                }}
+              >
+                Cancelar Cita
+              </Button>
+            )}
+            {(isPast || isCancelled) && onRebook && (
+              <Button
+                variant="coral"
+                className="flex-1"
+                onClick={() => {
+                  onRebook(appointment);
+                  onOpenChange(false);
+                }}
+              >
+                Reservar de nuevo
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              onClick={() => onOpenChange(false)}
+              className={!isPast && !isCancelled ? "" : "flex-1"}
+            >
+              Cerrar
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
