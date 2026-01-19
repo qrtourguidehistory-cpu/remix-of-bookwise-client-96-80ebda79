@@ -39,7 +39,7 @@ const AuthPage = () => {
           toast('Se requiere reautenticación; abriendo flujo de Google en navegador...', { id: 'reauth-notificacion' });
           try {
             const { supabase } = await import('@/integrations/supabase/client');
-            const redirectTo = 'com.bookwise.client://login-callback';
+            const redirectTo = 'com.miturnow.cliente://login-callback';
             console.log('🔐 Usando redirectTo (AuthPage fallback):', redirectTo);
             const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
               provider: 'google',

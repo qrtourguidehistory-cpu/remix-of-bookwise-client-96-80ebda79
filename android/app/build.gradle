@@ -1,10 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.bookwise.client"
+    signingConfigs {
+        cliente_prod {
+            storeFile file('C:\\Users\\laptop\\Desktop\\LLAVE CLIENTE TURNOW\\llave_cliente_miturnow.jks')
+            storePassword '1Delarosa'
+            keyAlias 'cliente_prod'
+            keyPassword '1Delarosa'
+        }
+    }
+    namespace "com.miturnow.cliente"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.bookwise.client"
+        applicationId "com.miturnow.cliente"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -16,45 +24,11 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    signingConfigs {
-        // Usar debug keystore para release (solo para testing)
-        // En producción, crear un keystore específico para release
-        release {
-            def keystorePropertiesFile = rootProject.file("keystore.properties")
-            def keystoreProperties = new Properties()
-            storeFile file('C:\\Users\\laptop\\Desktop\\LLAVE CLIENTE TURNOW\\llave_cliente_miturnow.jks')
-
-            // Intentar usar debug keystore si no hay keystore.properties
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-            } else {
-                // Usar debug keystore para testing
-                def debugKeystore = file("${System.getProperty('user.home')}/.android/debug.keystore")
-                if (debugKeystore.exists()) {
-                    storeFile debugKeystore
-                    storePassword 'android'
-                    keyAlias 'androiddebugkey'
-                    keyPassword 'android'
-                }
-            }
-        }
-        config_cliente {
-            storeFile file('C:\\Users\\laptop\\Desktop\\LLAVE CLIENTE TURNOW\\llave_cliente_miturnow.jks')
-            storePassword '1Delarosa'
-            keyAlias 'cliente_prod'
-            keyPassword '1Delarosa'
-        }
-    }
-    
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config_cliente
+            signingConfig signingConfigs.cliente_prod
         }
     }
 }
@@ -71,34 +45,10 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
-    // Pin androidx.browser to 1.8.0 to avoid SDK 36 requirement (Appflow build fix)
-    implementation 'androidx.browser:browser:1.8.0'
-    
-    // Firebase Cloud Messaging
-    implementation platform('com.google.firebase:firebase-bom:34.7.0')
-    implementation 'com.google.firebase:firebase-messaging'
-    
-    // OkHttp para llamadas HTTP al backend
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-}
-
-// Enforce resolution strategy to force androidx.browser:browser to 1.8.0 across all configurations
-configurations.all {
-    resolutionStrategy {
-        // Force this version regardless of transitive/upstream versions
-        force 'androidx.browser:browser:1.8.0'
-        eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'androidx.browser' && details.requested.name == 'browser') {
-                details.useVersion '1.8.0'
-                details.because 'Ensure browser 1.8.0 is used to avoid Android SDK 36 requirement'
-            }
-        }
-    }
 }
 
 apply from: 'capacitor.build.gradle'
@@ -110,4 +60,10 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.browser:browser:1.8.0'
+    }
 }

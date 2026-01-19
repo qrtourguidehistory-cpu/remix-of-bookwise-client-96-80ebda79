@@ -1,0 +1,17 @@
+# Zona Protegida - Notificaciones Push
+# NO MODIFICAR estos componentes - Están funcionando al 100%
+
+supabase/functions/send-push-notification/
+supabase/migrations/*push*
+supabase/migrations/*notification*
+
+# Secretos protegidos:
+# FIREBASE_SERVICE_ACCOUNT_PARTNER
+# FIREBASE_SERVICE_ACCOUNT_CLIENT
+
+# Funciones SQL protegidas:
+# call_send_push_notification
+# send_push_on_appointment_notification
+# create_appointment_status_notification
+
+

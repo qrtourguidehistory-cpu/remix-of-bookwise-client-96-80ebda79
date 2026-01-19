@@ -228,3 +228,5 @@ await supabase.functions.invoke('send-push-notification', {
 
 La función ahora soporta múltiples Firebase Service Accounts y selecciona automáticamente el correcto según el rol del usuario.
 
+
+

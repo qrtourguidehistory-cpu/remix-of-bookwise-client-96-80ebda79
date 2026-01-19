@@ -196,47 +196,107 @@ DECLARE
   v_function_url TEXT;
   v_response_id BIGINT;
   v_request_body JSONB;
+  v_normalized_role TEXT;
 BEGIN
-  -- Obtener Supabase URL
+  -- CRÍTICO: Validar que user_id NO sea NULL
+  IF p_user_id IS NULL THEN
+    RAISE WARNING '[Push] call_send_push_notification: user_id es NULL, no se puede enviar push. role=%, title=%', 
+      p_role, p_title;
+    RETURN;
+  END IF;
+  
+  -- CRÍTICO: Normalizar role a minúsculas
+  v_normalized_role := LOWER(TRIM(COALESCE(p_role, 'client')));
+  
+  -- Validar que title y body no sean NULL o vacíos
+  IF p_title IS NULL OR p_title = '' OR p_body IS NULL OR p_body = '' THEN
+    RAISE WARNING '[Push] call_send_push_notification: title o body vacíos. user_id=%, title=%, body=%, role=%', 
+      p_user_id, p_title, p_body, v_normalized_role;
+    RETURN;
+  END IF;
+  
+  -- CRÍTICO: Obtener Supabase URL - SIEMPRE tener un valor por defecto
   BEGIN
     v_supabase_url := current_setting('app.settings.supabase_url', true);
+    -- Si es NULL o vacío, usar el valor por defecto
+    IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
+      v_supabase_url := 'https://rdznelijpliklisnflfm.supabase.co';
+    END IF;
   EXCEPTION WHEN OTHERS THEN
+    -- Si falla, usar valor por defecto
     v_supabase_url := 'https://rdznelijpliklisnflfm.supabase.co';
   END;
   
+  -- CRÍTICO: Construir URL de la Edge Function - Asegurar que nunca sea NULL
+  v_function_url := TRIM(v_supabase_url) || '/functions/v1/send-push-notification';
+  
+  -- CRÍTICO: Validar que la URL esté completa y no sea NULL
+  IF v_function_url IS NULL OR v_function_url = '' OR NOT (v_function_url LIKE 'http%') THEN
+    RAISE WARNING '[Push] ERROR CRÍTICO: URL de Edge Function inválida. v_supabase_url=%, v_function_url=%', 
+      v_supabase_url, v_function_url;
+    RETURN;
+  END IF;
+  
   -- Obtener Service Role Key
-  v_service_role_key := public.get_service_role_key();
+  BEGIN
+    v_service_role_key := public.get_service_role_key();
+    IF v_service_role_key IS NULL OR v_service_role_key = '' THEN
+      RAISE WARNING '[Push] ERROR CRÍTICO: Service Role Key es NULL o vacío';
+      RETURN;
+    END IF;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING '[Push] ERROR al obtener Service Role Key: %', SQLERRM;
+    RETURN;
+  END;
   
-  -- Construir URL de la Edge Function
-  v_function_url := v_supabase_url || '/functions/v1/send-push-notification';
-  
-  -- Construir body del request
+  -- Construir body del request - usar role normalizado
   v_request_body := jsonb_build_object(
     'user_id', p_user_id::text,
     'title', p_title,
     'body', p_body,
-    'role', p_role,  -- IMPORTANTE: Enviar role para que la función use el secret correcto
+    'role', v_normalized_role,  -- CRÍTICO: Usar role normalizado
     'data', COALESCE(p_data, '{}'::jsonb),
-    'notification_id', COALESCE(p_notification_id::text, NULL)
+    'notification_id', CASE WHEN p_notification_id IS NOT NULL THEN p_notification_id::text ELSE NULL END
   );
+  
+  -- Log ANTES de llamar a pg_net
+  RAISE NOTICE '[Push] === INICIANDO LLAMADA A EDGE FUNCTION ===';
+  RAISE NOTICE '[Push] URL: %', v_function_url;
+  RAISE NOTICE '[Push] user_id: %, role: % (normalizado de %)', p_user_id, v_normalized_role, p_role;
+  
+  -- CRÍTICO: Validar nuevamente que la URL no sea NULL antes de llamar
+  IF v_function_url IS NULL OR v_function_url = '' THEN
+    RAISE WARNING '[Push] ERROR CRÍTICO: URL es NULL antes de llamar a pg_net.http_post';
+    RETURN;
+  END IF;
   
   -- Llamar a la Edge Function usando pg_net
   BEGIN
     SELECT net.http_post(
-      url := v_function_url,
+      url := v_function_url,  -- CRÍTICO: Esta URL debe ser válida
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || v_service_role_key  -- IMPORTANTE: Header Authorization con service_role key
+        'Authorization', 'Bearer ' || v_service_role_key
       ),
-      body := v_request_body
+      body := v_request_body,
+      timeout_milliseconds := 30000
     ) INTO v_response_id;
     
-    RAISE NOTICE '[Push] Notificación push enviada para usuario % (role: %, job_id: %): % - %', 
-      p_user_id, p_role, v_response_id, p_title, p_body;
+    -- Log después de la llamada
+    RAISE NOTICE '[Push] === LLAMADA A pg_net.http_post COMPLETADA ===';
+    RAISE NOTICE '[Push] Response ID (job_id): %', v_response_id;
+    RAISE NOTICE '[Push] Notificación push ENCOLADA para usuario % (role: %), job_id: %', 
+      p_user_id, v_normalized_role, v_response_id;
+      
+    -- Verificar el resultado
+    IF v_response_id IS NULL OR v_response_id = 0 THEN
+      RAISE WARNING '[Push] ADVERTENCIA: pg_net.http_post retornó NULL o 0.';
+    END IF;
       
   EXCEPTION WHEN OTHERS THEN
-    -- No fallar la transacción si pg_net falla
-    RAISE WARNING '[Push] Error al enviar push notification para usuario % (role: %): %', p_user_id, p_role, SQLERRM;
+    RAISE WARNING '[Push] === ERROR EN pg_net.http_post ===';
+    RAISE WARNING '[Push] Error: %, SQLSTATE: %', SQLERRM, SQLSTATE;
+    RAISE WARNING '[Push] URL intentada: %', COALESCE(v_function_url, 'NULL');
   END;
   
 EXCEPTION WHEN OTHERS THEN
@@ -291,17 +351,26 @@ BEGIN
   FROM public.appointments
   WHERE id = p_appointment_id;
   
-  -- Si no hay user_id pero hay client_email, buscar por email en client_profiles
+  -- Si no hay user_id pero hay client_email, buscar por email
   IF v_user_id IS NULL THEN
     SELECT client_email INTO v_client_email
     FROM public.appointments
     WHERE id = p_appointment_id;
     
     IF v_client_email IS NOT NULL THEN
+      -- Primero intentar buscar en client_profiles (tabla específica de clientes)
       SELECT id INTO v_user_id
       FROM public.client_profiles
       WHERE email = v_client_email
       LIMIT 1;
+      
+      -- Si no se encuentra en client_profiles, buscar directamente en auth.users
+      IF v_user_id IS NULL THEN
+        SELECT id INTO v_user_id
+        FROM auth.users
+        WHERE email = v_client_email
+        LIMIT 1;
+      END IF;
     END IF;
   END IF;
   
@@ -579,11 +648,15 @@ BEGIN
         BEGIN
           INSERT INTO public.appointment_notifications (
             appointment_id,
+            user_id,
+            role,
             send_at,
             status,
             meta
           ) VALUES (
             NEW.id,
+            _client_user_id,  -- CRÍTICO: Incluir user_id del cliente
+            'client',  -- CRÍTICO: Incluir role para que el trigger sepa qué secret usar
             NOW(),
             'sent',
             jsonb_build_object(
@@ -595,7 +668,8 @@ BEGIN
               'client_name', _client_name,
               'appointment_date', _appointment_date::text,
               'appointment_time', _appointment_time::text,
-              'recipient_type', 'client'
+              'recipient_type', 'client',
+              'user_id', _client_user_id::text  -- También incluir en meta para referencia
             )
           );
         EXCEPTION WHEN OTHERS THEN
@@ -718,11 +792,15 @@ BEGIN
         BEGIN
           INSERT INTO public.appointment_notifications (
             appointment_id,
+            user_id,
+            role,
             send_at,
             status,
             meta
           ) VALUES (
             _appointment_id,
+            _client_user_id,  -- CRÍTICO: Incluir user_id del cliente
+            'client',  -- CRÍTICO: Incluir role para que el trigger sepa qué secret usar
             NOW(),
             'sent',
             jsonb_build_object(
@@ -732,7 +810,8 @@ BEGIN
               'business_id', _business_id,
               'business_name', _business_name,
               'client_name', _client_name,
-              'recipient_type', 'client'
+              'recipient_type', 'client',
+              'user_id', _client_user_id::text  -- También incluir en meta para referencia
             )
           );
         EXCEPTION WHEN OTHERS THEN
@@ -846,4 +925,5 @@ BEGIN
   
   RAISE NOTICE '✅ Configuración de notificaciones push completada';
 END $$;
+
 

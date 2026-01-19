@@ -52,7 +52,7 @@
 ```typescript
 interface ServiceAccount {
   type: string;                    // "service_account"
-  project_id: string;              // "bookwise-cliente" (verificado en google-services.json)
+  project_id: string;              // "mi-turnow-cliente" (verificado en google-services.json)
   private_key_id: string;          // ID de la clave privada
   private_key: string;             // Clave privada PEM completa
   client_email: string;            // Email del service account
@@ -67,15 +67,15 @@ interface ServiceAccount {
 ### Validaciones Requeridas:
 
 #### ✅ 1. Project ID Correcto
-- **Valor Esperado:** `"bookwise-cliente"` (según `google-services.json` línea 4)
+- **Valor Esperado:** `"mi-turnow-cliente"` (según `google-services.json` línea 4)
 - **Verificación:** La función usa `serviceAccount.project_id` para construir la URL de FCM (línea 248)
 - **URL FCM:** `https://fcm.googleapis.com/v1/projects/${project_id}/messages:send`
 - **Estado:** ✅ El código está correcto, pero el Service Account debe tener este `project_id`
 
 #### ✅ 2. Package Name Coincide
-- **Package Name Actual:** `com.bookwise.client` (según `google-services.json` línea 12)
+- **Package Name Actual:** `com.miturnow.cliente` (según `google-services.json` línea 12)
 - **Verificación:** El Service Account debe estar configurado en Firebase Console para este package
-- **Requisito:** El Service Account debe tener permisos de FCM para el proyecto `bookwise-cliente`
+- **Requisito:** El Service Account debe tener permisos de FCM para el proyecto `mi-turnow-cliente`
 - **Estado:** ⚠️ Debe verificarse en Firebase Console
 
 #### ✅ 3. SHA-1 Certificado
@@ -197,10 +197,10 @@ supabase secrets set SUPABASE_SERVICE_ROLE_KEY="TU_SERVICE_ROLE_KEY_AQUI" --proj
 **Paso 1: Obtener el Service Account JSON de Firebase**
 
 1. Ve a [Firebase Console](https://console.firebase.google.com/)
-2. Selecciona proyecto: **bookwise-cliente**
+2. Selecciona proyecto: **mi-turnow-cliente**
 3. Ve a: **Project Settings** → **Service Accounts**
 4. Haz clic en **"Generate new private key"**
-5. Descarga el archivo JSON
+5. Descarga el archivo JSON (mi-turnow-cliente-firebase-adminsdk.json)
 6. Abre el JSON en un editor de texto
 
 **Paso 2: Preparar el JSON para el comando**
@@ -319,23 +319,23 @@ supabase secrets list --project-ref rdznelijpliklisnflfm
 ```json
 {
   "type": "service_account",
-  "project_id": "bookwise-cliente",
+  "project_id": "mi-turnow-cliente",
   "private_key_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-xxxxx@bookwise-cliente.iam.gserviceaccount.com",
+  "client_email": "firebase-adminsdk-xxxxx@mi-turnow-cliente.iam.gserviceaccount.com",
   "client_id": "xxxxxxxxxxxxxxxxxxxx",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
   "token_uri": "https://oauth2.googleapis.com/token",
   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxxxx%40bookwise-cliente.iam.gserviceaccount.com"
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxxxx%40mi-turnow-cliente.iam.gserviceaccount.com"
 }
 ```
 
 ### Validaciones del JSON:
 
-1. ✅ **project_id:** Debe ser `"bookwise-cliente"` (coincide con `google-services.json`)
+1. ✅ **project_id:** Debe ser `"mi-turnow-cliente"` (coincide con `google-services.json`)
 2. ✅ **private_key:** Debe contener la clave PEM completa con `\n` para saltos de línea
-3. ✅ **client_email:** Debe terminar en `@bookwise-cliente.iam.gserviceaccount.com`
+3. ✅ **client_email:** Debe terminar en `@mi-turnow-cliente.iam.gserviceaccount.com`
 4. ✅ **Formato:** JSON válido con todas las comillas escapadas si se pasa como string
 
 ---

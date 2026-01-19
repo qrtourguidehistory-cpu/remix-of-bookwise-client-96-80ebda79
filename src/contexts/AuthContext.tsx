@@ -317,7 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (errorMsg.includes('[16]') || errorMsg.toLowerCase().includes('reauth')) {
           console.warn('⚠️ Google native sign-in requires reauthentication; falling back to web OAuth (deep link)');
           try {
-            const redirectTo = 'com.bookwise.client://login-callback';
+            const redirectTo = 'com.miturnow.cliente://login-callback';
             console.log('🔐 Usando redirectTo (fallback):', redirectTo);
             const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
               provider: 'google',
@@ -365,7 +365,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('❌ Result completo:', JSON.stringify(result, null, 2));
         return {
           error: new Error(
-            'Google no devolvió idToken. Verifica:\n1. Web Client ID correcto en Google Cloud Console\n2. SHA-1 del keystore registrado en Google Cloud Console\n3. Package name: com.bookwise.client'
+            'Google no devolvió idToken. Verifica:\n1. Web Client ID correcto en Google Cloud Console\n2. SHA-1 del keystore registrado en Google Cloud Console\n3. Package name: com.miturnow.cliente'
           ),
         };
       }
@@ -437,7 +437,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // FORMA CORRECTA EN CAPACITOR: Usar deep link explícito
       const redirectTo = isDefinitelyNative 
-        ? 'com.bookwise.client://login-callback' 
+        ? 'com.miturnow.cliente://login-callback' 
         : `${windowLocation?.origin || 'http://localhost:3000'}/`;
       
       console.log('🍎 ===== INICIANDO APPLE OAUTH CON SUPABASE (FORMA CORRECTA) =====');
@@ -477,8 +477,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔍 URL completa de Supabase (Apple):', data.url.substring(0, 200) + '...');
           
           // Verificar el redirect_uri (solo para logging)
-          if (redirectUri && redirectUri.includes('com.bookwise.client://login-callback')) {
-            console.log('✅ CORRECTO: Supabase está usando com.bookwise.client://login-callback');
+          if (redirectUri && redirectUri.includes('com.miturnow.cliente://login-callback')) {
+            console.log('✅ CORRECTO: Supabase está usando com.miturnow.cliente://login-callback');
             console.log('✅ redirect_uri:', redirectUri);
           } else {
             console.log('🔍 redirect_uri en URL de Supabase (Apple):', redirectUri);

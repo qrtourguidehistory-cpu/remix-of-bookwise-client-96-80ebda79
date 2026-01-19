@@ -111,7 +111,7 @@ export const useNativeSocialLogin = () => {
         } else if (loginErrMsg.includes('[16]') || loginErrMsg.toLowerCase().includes('reauth')) {
           // Si la cuenta requiere reautenticación (ej: '[16] Account reauth failed'), hacer fallback a OAuth web con deep link
           console.warn('⚠️ SocialLogin returned account reauth failed; falling back to web OAuth');
-          const redirectTo = 'com.bookwise.client://login-callback';
+          const redirectTo = 'com.miturnow.cliente://login-callback';
           console.log('🔐 Usando redirectTo (useNativeSocialLogin fallback):', redirectTo);
           const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
             provider: 'google',

@@ -10,8 +10,10 @@ import { MapPin, Loader2 } from "lucide-react";
 
 type Business = Tables<"businesses">;
 
-// Token de Mapbox - SOLO desde variable de entorno (sin fallback hardcodeado)
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+// Token de Mapbox - Desde variable de entorno con fallback para producción
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 
+  // Fallback para producción (Android Release) si la variable de entorno falla
+  "pk.eyJ1IjoibWl0b3Vybm93IiwiYSI6ImNta2hzYnN3aTBtaHIzZHB1MHgydTZ1OWMifQ.I90chYaZczEFiJ33M7hdxw";
 
 interface MiTurnowMapProps {
   className?: string;
@@ -58,10 +60,16 @@ const MiTurnowMap = ({ className = "" }: MiTurnowMapProps) => {
 
     // Validar que el token esté disponible
     if (!MAPBOX_TOKEN) {
-      console.error('[Mapbox] ❌ VITE_MAPBOX_ACCESS_TOKEN no está configurada. El mapa no se puede inicializar.');
+      console.error('[Mapbox] ❌ VITE_MAPBOX_TOKEN no está configurada y el fallback también falló. El mapa no se puede inicializar.');
       setError('Token de Mapbox no configurado. Por favor, contacta al administrador.');
       setLoading(false);
       return;
+    }
+
+    // Log para debugging (solo en desarrollo)
+    if (import.meta.env.DEV) {
+      console.log('[Mapbox] ✅ Token configurado:', MAPBOX_TOKEN ? 'Sí' : 'No');
+      console.log('[Mapbox] Fuente:', import.meta.env.VITE_MAPBOX_TOKEN ? 'Variable de entorno' : 'Fallback de producción');
     }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;

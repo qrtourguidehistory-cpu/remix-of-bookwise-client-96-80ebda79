@@ -87,3 +87,5 @@ INSERT INTO public.client_notifications (
 
 Las funciones ahora usan el Service Role Key directamente y no requieren configuración adicional en la base de datos.
 
+
+

@@ -199,12 +199,22 @@ serve(async (req) => {
       );
     }
 
-    // Get service account
-    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
+    // Get service account based on user_type
+    // Use FIREBASE_SERVICE_ACCOUNT_CLIENT for clients, FIREBASE_SERVICE_ACCOUNT_PARTNER for partners
+    const serviceAccountSecretName = user_type === 'partner' 
+      ? 'FIREBASE_SERVICE_ACCOUNT_PARTNER' 
+      : 'FIREBASE_SERVICE_ACCOUNT_CLIENT';
+    
+    console.log(`📬 Using Firebase service account: ${serviceAccountSecretName}`);
+    
+    const serviceAccountJson = Deno.env.get(serviceAccountSecretName);
     if (!serviceAccountJson) {
-      console.error('❌ FIREBASE_SERVICE_ACCOUNT not configured');
+      console.error(`❌ ${serviceAccountSecretName} not configured`);
       return new Response(
-        JSON.stringify({ success: false, error: 'Firebase service account not configured' }),
+        JSON.stringify({ 
+          success: false, 
+          error: `Firebase service account not configured for role: ${user_type || 'client'}. Please configure ${serviceAccountSecretName}.` 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

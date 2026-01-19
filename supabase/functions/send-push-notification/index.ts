@@ -181,10 +181,16 @@ serve(async (req) => {
     }
 
     console.log('📬 Processing push notification for user:', user_id);
-    console.log('📬 User role:', role || 'client (default)');
+    console.log('📬 User role (raw):', role || 'client (default)');
 
-    // Determine which Firebase service account to use based on role
-    const isPartner = role === 'partner';
+    // CRÍTICO: Normalizar role a minúsculas ANTES de determinar el servicio
+    // Esto asegura que siempre use el servicio correcto independientemente de mayúsculas/minúsculas
+    const normalizedRole = (role || 'client').toLowerCase().trim();
+    console.log('📬 User role (normalized):', normalizedRole);
+
+    // Determine which Firebase service account to use based on normalized role
+    const isPartner = normalizedRole === 'partner';
+    // CRÍTICO: Usar el nombre exacto del secreto: FIREBASE_SERVICE_ACCOUNT_CLIENT (no CLIENTE)
     const serviceAccountSecretName = isPartner 
       ? 'FIREBASE_SERVICE_ACCOUNT_PARTNER' 
       : 'FIREBASE_SERVICE_ACCOUNT_CLIENT';
@@ -195,10 +201,11 @@ serve(async (req) => {
     const serviceAccountJson = Deno.env.get(serviceAccountSecretName);
     if (!serviceAccountJson) {
       console.error(`❌ ${serviceAccountSecretName} not configured`);
+      console.error(`❌ Available env vars: ${Object.keys(Deno.env.toObject()).filter(k => k.includes('FIREBASE')).join(', ')}`);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: `Firebase service account not configured for role: ${role || 'client'}. Please configure ${serviceAccountSecretName}.` 
+          error: `Firebase service account not configured for role: ${normalizedRole}. Please configure ${serviceAccountSecretName}.` 
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -212,34 +219,45 @@ serve(async (req) => {
     const firebaseProjectId = serviceAccount.project_id;
 
     // Determine user type from request (role takes precedence over data.user_type)
-    // This determines which table to query for FCM tokens
     const user_type = role || data?.user_type || 'client';
-    const isPartnerUser = user_type === 'partner';
-    const tableName = isPartnerUser ? 'partner_devices' : 'client_devices';
+    // CRÍTICO: Normalizar a minúsculas para asegurar match exacto con la tabla
+    // La tabla client_devices usa 'client' y 'partner' en minúsculas
+    const normalizedUserType = (user_type || '').toLowerCase().trim();
+    const userRole = normalizedUserType === 'partner' ? 'partner' : 'client';
+    
+    // CRÍTICO: Log específico para diagnóstico - ANTES de buscar en la tabla
+    console.log(`DEBUG: Buscando token para user ${user_id} con el rol exacto: ${userRole}`);
     
     console.log(`📬 User type determined: ${user_type}`);
-    console.log(`📬 Using table: ${tableName}`);
-    console.log(`📬 Fetching FCM tokens from ${tableName} for user ${user_id}`);
-
-    // Get FCM tokens from client_devices or partner_devices table
+    console.log(`📬 Normalized role: ${userRole} (original: ${user_type})`);
+    console.log(`📬 Using table: client_devices (unified table)`);
+    console.log(`📬 Filtering by role: ${userRole}`);
+    
+    // DEBUG: Log justo antes de la consulta SQL
+    console.log(`DEBUG: Consultando client_devices para user: ${user_id} y role: ${userRole}`);
+    
+    // Get FCM tokens from client_devices table (unified table for both clients and partners)
+    // Filter by user_id AND role to get the correct devices
+    // CRÍTICO: Asegurar que el role sea exactamente 'client' o 'partner' en minúsculas
     const { data: devices, error: devicesError } = await supabase
-      .from(tableName)
+      .from('client_devices')
       .select('id, fcm_token, platform')
-      .eq('user_id', user_id);
+      .eq('user_id', user_id)
+      .eq('role', userRole);  // userRole ya está normalizado a 'client' o 'partner' en minúsculas
 
     if (devicesError) {
       console.error('❌ Error fetching devices:', devicesError);
       console.error('❌ Error details:', JSON.stringify(devicesError, null, 2));
-      throw new Error(`Failed to fetch devices from ${tableName}: ${devicesError.message}`);
+      throw new Error(`Failed to fetch devices from client_devices: ${devicesError.message}`);
     }
 
     if (!devices || devices.length === 0) {
-      console.log(`⚠️ No devices found in ${tableName} for user:`, user_id);
+      console.log(`⚠️ No devices found in client_devices for user ${user_id} with role ${userRole}`);
       return new Response(
         JSON.stringify({ 
           success: true,
           sent: 0,
-          message: `No devices registered in ${tableName} for this user` 
+          message: `No devices registered in client_devices for this user with role ${userRole}` 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -288,7 +306,7 @@ serve(async (req) => {
     if (invalidTokenIds.length > 0) {
       console.log(`🧹 Cleaning up ${invalidTokenIds.length} invalid token(s)`);
       const { error: deleteError } = await supabase
-        .from(tableName)
+        .from('client_devices')
         .delete()
         .in('id', invalidTokenIds);
 

@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bookwise.client',
+  appId: 'com.miturnow.cliente',
   appName: 'Mí Turnow',
   webDir: 'dist',
   android: {
-    appId: 'com.bookwise.client',
+    appId: 'com.miturnow.cliente',
   },
 };
 

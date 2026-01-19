@@ -155,7 +155,7 @@ export const useDeepLinks = () => {
             const url = new URL(event.url);
             
             // Capturar callbacks OAuth con el esquema correcto (deep link)
-            if ((url.protocol === 'com.bookwise.client:' || url.protocol === 'bookwise:') && url.host === 'login-callback') {
+            if ((url.protocol === 'com.miturnow.cliente:' || url.protocol === 'bookwise:') && url.host === 'login-callback') {
               console.log('✅ Callback OAuth detectado (deep link):', event.url);
               await handleOAuthCallback(event.url, supabase, navigate);
               return;
@@ -176,7 +176,7 @@ export const useDeepLinks = () => {
             console.log('⚠️ Error al parsear URL:', e);
             
             // Detectar callback OAuth por contenido de URL (fallback)
-            if (event.url.includes('com.bookwise.client://login-callback') || 
+            if (event.url.includes('com.miturnow.cliente://login-callback') || 
                 event.url.includes('bookwise://login-callback') ||
                 (event.url.includes('supabase.co') && event.url.includes('/auth/v1/callback'))) {
               console.log('✅ Callback OAuth detectado (fallback):', event.url);
@@ -202,7 +202,7 @@ export const useDeepLinks = () => {
               const launchUrl = await App.getLaunchUrl();
               
               if (launchUrl?.url && (
-                launchUrl.url.includes('com.bookwise.client://login-callback') || 
+                launchUrl.url.includes('com.miturnow.cliente://login-callback') || 
                 launchUrl.url.includes('bookwise://login-callback') ||
                 (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))
               )) {
@@ -228,7 +228,7 @@ export const useDeepLinks = () => {
         if (launchUrl?.url && mountedRef.current) {
           console.log('🚀 URL de lanzamiento inicial:', launchUrl.url);
           
-          if (launchUrl.url.includes('com.bookwise.client://login-callback') || 
+          if (launchUrl.url.includes('com.miturnow.cliente://login-callback') || 
               launchUrl.url.includes('bookwise://login-callback') ||
               (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))) {
             console.log('🚀 URL de lanzamiento OAuth detectada (inicial):', launchUrl.url);

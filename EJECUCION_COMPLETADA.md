@@ -130,3 +130,5 @@ WHERE table_schema = 'public'
 
 **Estado:** ✅ **CONFIGURACIÓN COMPLETADA** (Solo falta configurar Service Role Key)
 
+
+

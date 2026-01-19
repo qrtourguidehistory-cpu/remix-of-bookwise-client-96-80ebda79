@@ -81,10 +81,10 @@ Write-Host "⚠️  Esta variable es CRÍTICA para que la función funcione." -F
 Write-Host ""
 Write-Host "Pasos para obtener el Service Account JSON:" -ForegroundColor Yellow
 Write-Host "  1. Ve a: https://console.firebase.google.com/" -ForegroundColor Cyan
-Write-Host "  2. Selecciona proyecto: bookwise-cliente" -ForegroundColor Cyan
+Write-Host "  2. Selecciona proyecto: mi-turnow-cliente" -ForegroundColor Cyan
 Write-Host "  3. Ve a: Project Settings → Service Accounts" -ForegroundColor Cyan
 Write-Host "  4. Haz clic en: Generate new private key" -ForegroundColor Cyan
-Write-Host "  5. Descarga el archivo JSON" -ForegroundColor Cyan
+Write-Host "  5. Descarga el archivo JSON (mi-turnow-cliente-firebase-adminsdk.json)" -ForegroundColor Cyan
 Write-Host ""
 $jsonPath = Read-Host "  Ingresa la ruta completa al archivo JSON (o presiona Enter para configurar manualmente)"
 
@@ -95,8 +95,8 @@ if ($jsonPath -ne "" -and (Test-Path $jsonPath)) {
         $jsonObj = $jsonContent | ConvertFrom-Json
         Write-Host "  ✅ JSON válido. Project ID: $($jsonObj.project_id)" -ForegroundColor Green
         
-        if ($jsonObj.project_id -ne "bookwise-cliente") {
-            Write-Host "  ⚠️  ADVERTENCIA: Project ID es '$($jsonObj.project_id)', pero debería ser 'bookwise-cliente'" -ForegroundColor Yellow
+        if ($jsonObj.project_id -ne "mi-turnow-cliente") {
+            Write-Host "  ⚠️  ADVERTENCIA: Project ID es '$($jsonObj.project_id)', pero debería ser 'mi-turnow-cliente'" -ForegroundColor Yellow
             $continue = Read-Host "  ¿Continuar de todas formas? (S/N)"
             if ($continue -ne "S" -and $continue -ne "s") {
                 Write-Host "  ⚠️  Configuración cancelada" -ForegroundColor Yellow
@@ -151,7 +151,7 @@ Write-Host "     - FIREBASE_SERVICE_ACCOUNT" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  2. Verifica en Firebase Console:" -ForegroundColor Cyan
 Write-Host "     - SHA-1 del keystore de producción está registrado" -ForegroundColor Cyan
-Write-Host "     - Package com.bookwise.client está configurado" -ForegroundColor Cyan
+Write-Host "     - Package com.miturnow.cliente está configurado" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  3. Prueba la función enviando una notificación de prueba" -ForegroundColor Cyan
 Write-Host ""
