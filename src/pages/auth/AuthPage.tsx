@@ -4,21 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { SocialButton } from '@/components/auth/SocialButton';
-import { PhoneInput, countries } from '@/components/auth/PhoneInput';
-import { Country } from '@/components/auth/CountrySelector';
 import { ArrowLeft, Globe, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/components/ui/sonner';
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { signInWithGoogle, signInWithApple, signInWithPhone, user, isLoading: authLoading } = useAuth();
+  const { signInWithGoogle, user, isLoading: authLoading } = useAuth();
   const { t, i18n } = useTranslation();
 
-  const [phone, setPhone] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<Country>(
-    countries.find(c => c.code === 'DO') || countries[0]
-  );
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   // Navigate to home when user is authenticated
@@ -75,45 +69,8 @@ const AuthPage = () => {
     }
   };
 
-  const handleAppleLogin = async () => {
-    setIsLoading('apple');
-    try {
-      const { error } = await signInWithApple();
-      if (error) {
-        toast.error(error.message || 'Failed to sign in with Apple', { id: 'apple-auth-error' });
-        setIsLoading(null);
-      } else {
-        // OAuth flow started - browser will open
-        // Don't show success yet, wait for deep link callback to establish session
-        // The useEffect will handle navigation when user state updates
-        console.log('🍎 OAuth iniciado, esperando callback de deep link...');
-      }
-    } catch (error) {
-      toast.error('An unexpected error occurred', { id: 'apple-auth-error-unexpected' });
-      setIsLoading(null);
-    }
-  };
-
   const handleEmailLogin = () => {
     navigate('/auth/email');
-  };
-
-  const handlePhoneContinue = async () => {
-    if (!phone || phone.replace(/\D/g, '').length < 10) {
-      toast.error('Please enter a valid phone number', { id: 'phone-validation-error' });
-      return;
-    }
-
-    setIsLoading('phone');
-    const fullPhone = `${selectedCountry.dialCode}${phone.replace(/\D/g, '')}`;
-    
-    const { error } = await signInWithPhone(fullPhone);
-    if (error) {
-      toast.error(error.message || 'Failed to send verification code', { id: 'phone-send-error' });
-      setIsLoading(null);
-    } else {
-      navigate('/auth/verify', { state: { phone: fullPhone } });
-    }
   };
 
   const handleBack = () => {
@@ -172,11 +129,6 @@ const AuthPage = () => {
           className="space-y-3 mb-8"
         >
           <SocialButton
-            provider="apple"
-            onClick={handleAppleLogin}
-            isLoading={isLoading === 'apple'}
-          />
-          <SocialButton
             provider="google"
             onClick={handleGoogleLogin}
             isLoading={isLoading === 'google'}
@@ -186,51 +138,6 @@ const AuthPage = () => {
             onClick={handleEmailLogin}
             isLoading={isLoading === 'email'}
           />
-        </motion.div>
-
-        {/* Divider */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="relative mb-8"
-        >
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-slate-500">
-              {t('auth.login.or', 'OR')}
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Phone Input */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="space-y-4"
-        >
-          <PhoneInput
-            value={phone}
-            onChange={setPhone}
-            selectedCountry={selectedCountry}
-            onCountryChange={setSelectedCountry}
-            placeholder={t('auth.login.enterPhone', 'Phone number')}
-          />
-
-          <Button
-            onClick={handlePhoneContinue}
-            disabled={!phone || isLoading === 'phone'}
-            className="w-full h-14 text-lg font-semibold rounded-xl"
-          >
-            {isLoading === 'phone' ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-            ) : (
-              t('auth.welcome.continue', 'Continue')
-            )}
-          </Button>
         </motion.div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { ImageViewer } from "@/components/business/ImageViewer";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, MapPin, Clock, Phone, Share2, Heart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { ImageCarousel } from "@/components/business/ImageCarousel";
 import { useEstablishment } from "@/hooks/useEstablishments";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useDBBusinessHours, getDefaultBusinessHours } from "@/hooks/useBusinessHours";
+import { useBusinessGallery } from "@/hooks/useBusinessGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
@@ -24,9 +26,11 @@ const BusinessProfile = () => {
   
   const { establishment, services: dbServices, paymentMethods, loading, error, refetch } = useEstablishment(id);
   const { hours: dbHours } = useDBBusinessHours(id);
+  const { galleryImages } = useBusinessGallery(id); // Obtener imágenes de galería
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLogoViewerOpen, setIsLogoViewerOpen] = useState(false);
   const touchStartY = useRef<number | null>(null);
   const touchEndY = useRef<number | null>(null);
 
@@ -235,6 +239,55 @@ const BusinessProfile = () => {
     }
   };
 
+  // Combinar imágenes de portada con imágenes de galería
+  // Prioridad: cover_image_url primero, luego imágenes de galería
+  // CRÍTICO: Este useMemo debe estar ANTES de los early returns para cumplir con las reglas de hooks
+  const coverImages = useMemo(() => {
+    const images: string[] = [];
+    // Agregar imagen de portada si existe
+    if (establishment?.cover_image_url) {
+      images.push(establishment.cover_image_url);
+    }
+    // Agregar imágenes de galería
+    if (galleryImages.length > 0) {
+      images.push(...galleryImages);
+    }
+    // Fallback a main_image si no hay portada ni galería
+    if (images.length === 0 && establishment?.main_image) {
+      images.push(establishment.main_image);
+    }
+    return images;
+  }, [establishment?.cover_image_url, establishment?.main_image, galleryImages]);
+
+  // Transform DB services to component format
+  // Preserve all price fields (price_rd, price_usd) from transformed services
+  // Note: dbServices already comes transformed from useEstablishment hook with price_rd and price_usd
+  const services: Service[] = useMemo(() => {
+    console.log("BusinessProfile - dbServices received:", dbServices.length, dbServices.map(s => ({ id: s.id, name: s.name })));
+    
+    return dbServices.map(s => {
+      // Use the transformed price_rd and price_usd if available, otherwise calculate
+      const priceRD = (s as any).price_rd !== undefined 
+        ? Number((s as any).price_rd) 
+        : Number(s.price || 0);
+      const priceUSD = (s as any).price_usd !== undefined 
+        ? Number((s as any).price_usd) 
+        : 0;
+      
+      return {
+        id: s.id,
+        name: s.name,
+        description: s.description || "",
+        duration: (s as any).duration_minutes || 30,
+        price: Number(s.price || 0),
+        price_rd: priceRD,
+        price_usd: priceUSD,
+        price_currency: s.price_currency || "DOP",
+        currency: s.price_currency || "DOP",
+      };
+    });
+  }, [dbServices]);
+
   // Loading state
   if (loading) {
     return (
@@ -273,36 +326,6 @@ const BusinessProfile = () => {
     );
   }
 
-  // Transform DB services to component format
-  // Preserve all price fields (price_rd, price_usd) from transformed services
-  // Note: dbServices already comes transformed from useEstablishment hook with price_rd and price_usd
-  console.log("BusinessProfile - dbServices received:", dbServices.length, dbServices.map(s => ({ id: s.id, name: s.name })));
-  
-  const services: Service[] = dbServices.map(s => {
-    // Use the transformed price_rd and price_usd if available, otherwise calculate
-    const priceRD = (s as any).price_rd !== undefined 
-      ? Number((s as any).price_rd) 
-      : Number(s.price || 0);
-    const priceUSD = (s as any).price_usd !== undefined 
-      ? Number((s as any).price_usd) 
-      : 0;
-    
-    return {
-      id: s.id,
-      name: s.name,
-      description: s.description || "",
-      duration: (s as any).duration_minutes || 30,
-      price: Number(s.price || 0),
-      price_rd: priceRD,
-      price_usd: priceUSD,
-      price_currency: s.price_currency || "DOP",
-      currency: s.price_currency || "DOP",
-    };
-  });
-
-  // Get images
-  const images = establishment.main_image ? [establishment.main_image] : [];
-
   const isCurrentFavorite = id ? isFavorite(id) : false;
 
   return (
@@ -312,10 +335,10 @@ const BusinessProfile = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Section with Image Carousel */}
+      {/* Hero Section with Cover Image Carousel (clickeable) */}
       <div className="relative h-56 bg-gradient-to-br from-secondary to-muted">
-        {images.length > 0 ? (
-          <ImageCarousel images={images} alt={establishment.name} />
+        {coverImages.length > 0 ? (
+          <ImageCarousel images={coverImages} alt={establishment.name} clickable={true} />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-muted">
             <span className="text-muted-foreground">{t("business.noImage")}</span>
@@ -369,24 +392,44 @@ const BusinessProfile = () => {
         "max-w-lg mx-auto px-4 -mt-8 relative z-10",
         selectedServices.length > 0 ? "pb-36" : "pb-8"
       )}>
-        <div className="bg-card rounded-2xl shadow-card p-5 animate-slide-up">
+        <div className="bg-card rounded-2xl shadow-card p-5 animate-slide-up relative">
           <h1 className="text-xl font-bold text-foreground mb-2">{establishment.name}</h1>
           
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-warning fill-warning" />
-              <span className="font-semibold text-foreground">
-                {establishment.rating || 0}
-              </span>
-              <span className="text-muted-foreground text-sm">
-                ({establishment.review_count || 0} {t("business.reviews")})
-              </span>
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-warning fill-warning" />
+                <span className="font-semibold text-foreground">
+                  {establishment.rating || 0}
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  ({establishment.review_count || 0} {t("business.reviews")})
+                </span>
+              </div>
+              {establishment.address && (
+                <span className="flex items-center gap-1 text-muted-foreground text-sm">
+                  <MapPin className="w-4 h-4 text-gray-700" strokeWidth={2} />
+                  {establishment.address}
+                </span>
+              )}
             </div>
-            {establishment.address && (
-              <span className="flex items-center gap-1 text-muted-foreground text-sm">
-                <MapPin className="w-4 h-4 text-gray-700" strokeWidth={2} />
-                {establishment.address}
-              </span>
+            {/* Logo circular pequeño en la esquina inferior derecha (junto a puntuación/reseñas) */}
+            {establishment.logo_url && (
+              <>
+                <img
+                  src={establishment.logo_url}
+                  alt={`${establishment.name} logo`}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
+                  onClick={() => setIsLogoViewerOpen(true)}
+                />
+                <ImageViewer
+                  images={[establishment.logo_url]}
+                  initialIndex={0}
+                  isOpen={isLogoViewerOpen}
+                  onClose={() => setIsLogoViewerOpen(false)}
+                  alt={`${establishment.name} logo`}
+                />
+              </>
             )}
           </div>
 

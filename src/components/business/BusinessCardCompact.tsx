@@ -11,7 +11,9 @@ export interface BusinessCompact {
   reviewCount: number;
   address?: string;
   category?: string;
-  imageUrl: string;
+  imageUrl: string; // Deprecated: usar coverImageUrl
+  coverImageUrl?: string; // Imagen de portada (principal)
+  logoUrl?: string; // Imagen de perfil (circular pequeña)
   isFavorite?: boolean;
 }
 
@@ -55,11 +57,11 @@ export const BusinessCardCompact = memo(function BusinessCardCompact({ business,
       onClick={handleClick}
       className="flex-shrink-0 w-[180px] cursor-pointer group"
     >
-      {/* Image - Main element with rounded corners on all 4 sides */}
+      {/* Cover Image - Main element with rounded corners on all 4 sides */}
       <div className="relative">
-        {business.imageUrl ? (
+        {business.coverImageUrl || business.imageUrl ? (
           <img
-            src={business.imageUrl}
+            src={business.coverImageUrl || business.imageUrl}
             alt={business.name}
             loading="lazy"
             className="w-full aspect-[16/11] rounded-xl object-cover transition-transform duration-300 group-hover:scale-105"
@@ -95,7 +97,7 @@ export const BusinessCardCompact = memo(function BusinessCardCompact({ business,
           {business.name}
         </h3>
         
-        {/* Rating and Review Count - Single line */}
+        {/* Rating and Review Count - Single line (sin logo en home) */}
         <div className="flex items-center gap-1">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
           <span className="text-sm font-semibold text-gray-900">

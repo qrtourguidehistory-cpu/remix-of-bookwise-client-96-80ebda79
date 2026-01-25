@@ -240,8 +240,11 @@ const SearchPage = () => {
       reviewCount: est.review_count || 0,
       distance: "N/A",
       category: mapCategory(est.category || est.primary_category), // Mantener para compatibilidad
-      imageUrl: est.main_image || "",
-      images: est.main_image ? [est.main_image] : [],
+      imageUrl: est.main_image || "", // Deprecated: mantener para compatibilidad
+      images: est.main_image ? [est.main_image] : [], // Deprecated: mantener para compatibilidad
+      coverImageUrl: est.cover_image_url || undefined, // Imagen de portada (principal)
+      coverImages: est.cover_image_url ? [est.cover_image_url] : [], // Múltiples imágenes de portada
+      logoUrl: est.logo_url || undefined, // Imagen de perfil (circular pequeña)
       isFavorite: isFavorite(est.id),
       closingTime: "8:00 PM",
       address: est.address || undefined, // Agregar dirección

@@ -52,7 +52,9 @@ const Index = () => {
         reviewCount: est.review_count || 0,
         address: est.address || undefined,
         category: normalizedCategory,
-        imageUrl: est.main_image || "",
+        imageUrl: est.main_image || "", // Deprecated: mantener para compatibilidad
+        coverImageUrl: est.cover_image_url || undefined, // Imagen de portada (principal)
+        logoUrl: est.logo_url || undefined, // Imagen de perfil (circular pequeña)
         isFavorite: isFavorite(est.id),
       };
     });
@@ -117,7 +119,9 @@ const Index = () => {
     );
   }
 
-  if (error) {
+  // Solo mostrar error completo si no hay datos previos (error en carga inicial)
+  // Si hay datos previos, mostrar la UI normal y permitir que el usuario continúe
+  if (error && businesses.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">

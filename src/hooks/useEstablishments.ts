@@ -17,7 +17,9 @@ export interface UnifiedEstablishment {
   email: string | null;
   rating: number;
   review_count: number;
-  main_image: string | null;
+  main_image: string | null; // Deprecated: usar logo_url y cover_image_url
+  logo_url: string | null; // Imagen de perfil (circular pequeña)
+  cover_image_url: string | null; // Imagen de portada (principal)
   category: string | null;
   primary_category: string | null;
   secondary_categories: string[] | null;
@@ -40,19 +42,32 @@ export function useEstablishments() {
   const [establishments, setEstablishments] = useState<UnifiedEstablishment[]>(establishmentsCache || []);
   const [loading, setLoading] = useState(!establishmentsCache);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(!establishmentsCache);
 
-  const fetchEstablishments = useCallback(async (forceRefresh = false) => {
+  const fetchEstablishments = useCallback(async (forceRefresh = false, isRealtimeRefresh = false) => {
     // Use cache if available and not expired
     const now = Date.now();
     if (!forceRefresh && establishmentsCache && (now - cacheTimestamp) < CACHE_DURATION) {
       setEstablishments(establishmentsCache);
       setLoading(false);
+      setIsInitialLoad(false);
       return;
     }
 
+    // Para refreshes realtime, no mostrar loading ni limpiar error si hay datos previos
+    // Usar cache como fuente de verdad para evitar dependencias del estado
+    const hasExistingData = establishmentsCache !== null && establishmentsCache.length > 0;
+    
     try {
-      setLoading(true);
-      setError(null);
+      // Solo setear loading si es el fetch inicial o no hay datos previos
+      if (!isRealtimeRefresh || !hasExistingData) {
+        setLoading(true);
+      }
+      
+      // Solo limpiar error en fetch inicial, no en refreshes realtime
+      if (!isRealtimeRefresh) {
+        setError(null);
+      }
       
       // Optimized query: only select needed columns (incluye secondary_categories, temporarily_closed, closed_until, google_maps_url, latitude, longitude)
       const { data: businessesData, error: businessesError } = await supabase
@@ -60,6 +75,7 @@ export function useEstablishments() {
         .select("id, business_name, description, address, phone, email, average_rating, total_reviews, logo_url, cover_image_url, primary_category, category, secondary_categories, slug, is_public, is_active, temporarily_closed, closed_until, google_maps_url, latitude, longitude, created_at")
         .eq("is_public", true)
         .eq("is_active", true)
+        .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
         .limit(100); // Limit to prevent huge queries
 
@@ -78,7 +94,9 @@ export function useEstablishments() {
         email: b.email,
         rating: 4.5, // Hardcoded rating for all establishments
         review_count: b.total_reviews || 0,
-        main_image: b.logo_url || b.cover_image_url,
+        main_image: b.logo_url || b.cover_image_url, // Deprecated: mantener para compatibilidad
+        logo_url: b.logo_url ?? null, // Imagen de perfil (circular pequeña)
+        cover_image_url: b.cover_image_url ?? null, // Imagen de portada (principal)
         category: b.primary_category || b.category,
         primary_category: b.primary_category,
         secondary_categories: b.secondary_categories || [],
@@ -96,16 +114,83 @@ export function useEstablishments() {
       establishmentsCache = normalizedBusinesses;
       cacheTimestamp = now;
       setEstablishments(normalizedBusinesses);
+      setIsInitialLoad(false);
     } catch (err: any) {
-      setError(err.message);
-      console.error("Error fetching establishments:", err);
+      // CRÍTICO: Solo setear error si es el fetch inicial
+      // Si es un refresh realtime, mantener los datos anteriores y no romper la UI
+      if (!isRealtimeRefresh) {
+        setError(err.message);
+        console.error("Error fetching establishments (initial load):", err);
+      } else {
+        // Para refreshes realtime, solo loguear el error pero no romper la UI
+        console.warn("Error en refresh realtime de establishments (manteniendo datos anteriores):", err);
+        // No setear error, mantener datos anteriores
+      }
     } finally {
-      setLoading(false);
+      // Solo setear loading en false si no es un refresh realtime con datos existentes
+      if (!isRealtimeRefresh || !hasExistingData) {
+        setLoading(false);
+      }
     }
+    // No incluir dependencias - el callback usa el cache global y el estado se lee en tiempo de ejecución
   }, []);
 
   useEffect(() => {
     fetchEstablishments();
+  }, [fetchEstablishments]);
+
+  useEffect(() => {
+    let retryTimeout: NodeJS.Timeout | null = null;
+    let retryAttempts = 0;
+    const MAX_RETRY_ATTEMPTS = 3;
+    
+    const handleRealtimeChange = (payload: any) => {
+      console.log("Businesses changed via Realtime:", payload);
+      
+      // Reset retry attempts on successful event
+      retryAttempts = 0;
+      
+      // Intentar refresh con retry logic
+      const attemptRefresh = async (attempt: number = 0) => {
+        try {
+          await fetchEstablishments(true, true); // forceRefresh = true, isRealtimeRefresh = true
+        } catch (err) {
+          // Si falla y aún tenemos intentos, reintentar con exponential backoff
+          if (attempt < MAX_RETRY_ATTEMPTS) {
+            const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
+            console.warn(`Realtime refresh falló, reintentando en ${delay}ms (intento ${attempt + 1}/${MAX_RETRY_ATTEMPTS})`);
+            retryTimeout = setTimeout(() => {
+              attemptRefresh(attempt + 1);
+            }, delay);
+          } else {
+            console.error("Máximo de intentos alcanzado para refresh realtime, manteniendo datos anteriores");
+          }
+        }
+      };
+      
+      attemptRefresh();
+    };
+    
+    const channel = supabase
+      .channel(`public-businesses-realtime-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "businesses" },
+        handleRealtimeChange
+      )
+      .subscribe((status) => {
+        console.log("[Realtime] Businesses subscription status:", status);
+        if (status === "SUBSCRIBED") {
+          retryAttempts = 0; // Reset on successful subscription
+        }
+      });
+
+    return () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+      supabase.removeChannel(channel);
+    };
   }, [fetchEstablishments]);
 
   return {
@@ -216,7 +301,9 @@ export function useEstablishment(id: string | undefined) {
           email: businessData.email,
           rating: 4.5, // Hardcoded rating for all establishments
           review_count: businessData.total_reviews || 0,
-          main_image: businessData.logo_url || businessData.cover_image_url,
+          main_image: businessData.logo_url || businessData.cover_image_url, // Deprecated: mantener para compatibilidad
+          logo_url: businessData.logo_url ?? null, // Imagen de perfil (circular pequeña)
+          cover_image_url: businessData.cover_image_url ?? null, // Imagen de portada (principal)
           category: businessData.primary_category || businessData.category,
           primary_category: businessData.primary_category,
           secondary_categories: businessData.secondary_categories || [],
@@ -355,7 +442,9 @@ export function useEstablishment(id: string | undefined) {
                 email: updatedData.email ?? prev.email,
                 rating: Number(updatedData.average_rating) || prev.rating,
                 review_count: updatedData.total_reviews ?? prev.review_count,
-                main_image: updatedData.logo_url || updatedData.cover_image_url || prev.main_image,
+                main_image: updatedData.logo_url || updatedData.cover_image_url || prev.main_image, // Deprecated
+                logo_url: updatedData.logo_url ?? prev.logo_url,
+                cover_image_url: updatedData.cover_image_url ?? prev.cover_image_url,
                 category: updatedData.primary_category || updatedData.category || prev.category,
                 primary_category: updatedData.primary_category ?? prev.primary_category,
                 secondary_categories: updatedData.secondary_categories ?? prev.secondary_categories,
