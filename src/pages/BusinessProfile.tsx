@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Browser } from "@capacitor/browser";
+import { usePreventDuplicateCalls } from "@/hooks/useDebounce";
 
 const BusinessProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,13 +27,16 @@ const BusinessProfile = () => {
   
   const { establishment, services: dbServices, paymentMethods, loading, error, refetch } = useEstablishment(id);
   const { hours: dbHours } = useDBBusinessHours(id);
-  const { galleryImages } = useBusinessGallery(id); // Obtener imágenes de galería
+  const { galleryImages, loading: galleryLoading, error: galleryError } = useBusinessGallery(id); // Obtener imágenes de galería
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLogoViewerOpen, setIsLogoViewerOpen] = useState(false);
   const touchStartY = useRef<number | null>(null);
   const touchEndY = useRef<number | null>(null);
+  
+  // Prevenir consultas duplicadas en toggleFavorite
+  const safeToggleFavorite = usePreventDuplicateCalls(toggleFavorite, 500);
 
   // Check if business is temporarily closed
   // This checks both the flag and if closed_until has passed
@@ -188,9 +192,18 @@ const BusinessProfile = () => {
       return;
     }
     if (id) {
-      await toggleFavorite(id);
+      await safeToggleFavorite(id);
     }
   };
+  
+  // Limpiador de estado al desmontar la pantalla
+  useEffect(() => {
+    return () => {
+      // Liberar referencias pesadas cuando se desmonta
+      setSelectedServices([]);
+      // Las queries de TanStack Query se limpian automáticamente
+    };
+  }, []);
 
   const totalPriceRD = selectedServices.reduce((sum, s) => sum + (s.price_rd || s.price || 0), 0);
   const totalPriceUSD = selectedServices.reduce((sum, s) => sum + (s.price_usd || 0), 0);
@@ -242,20 +255,47 @@ const BusinessProfile = () => {
   // Combinar imágenes de portada con imágenes de galería
   // Prioridad: cover_image_url primero, luego imágenes de galería
   // CRÍTICO: Este useMemo debe estar ANTES de los early returns para cumplir con las reglas de hooks
+  // Este array incluye TODAS las imágenes disponibles para el carrusel (portada + galería)
   const coverImages = useMemo(() => {
     const images: string[] = [];
-    // Agregar imagen de portada si existe
+    // Agregar imagen de portada si existe (será la primera imagen)
     if (establishment?.cover_image_url) {
       images.push(establishment.cover_image_url);
     }
-    // Agregar imágenes de galería
+    // Agregar TODAS las imágenes de galería del bucket "Galeria"
+    // Estas se obtienen del hook useBusinessGallery que busca por business_id
     if (galleryImages.length > 0) {
-      images.push(...galleryImages);
+      // Evitar duplicados: si cover_image_url ya está en galleryImages, no agregarlo dos veces
+      const uniqueGalleryImages = galleryImages.filter(img => 
+        !establishment?.cover_image_url || img !== establishment.cover_image_url
+      );
+      images.push(...uniqueGalleryImages);
     }
     // Fallback a main_image si no hay portada ni galería
     if (images.length === 0 && establishment?.main_image) {
       images.push(establishment.main_image);
     }
+    
+    // Debug: Log para verificar que las imágenes se están cargando correctamente
+    if (images.length > 0) {
+      console.log(`🖼️ BusinessProfile: ${images.length} imágenes cargadas para el carrusel`, {
+        coverImage: establishment?.cover_image_url,
+        galleryImagesCount: galleryImages.length,
+        galleryLoading,
+        galleryError,
+        totalImages: images.length,
+        images: images
+      });
+    } else {
+      console.warn(`⚠️ BusinessProfile: No hay imágenes disponibles para el carrusel`, {
+        coverImage: establishment?.cover_image_url,
+        galleryImagesCount: galleryImages.length,
+        galleryLoading,
+        galleryError,
+        mainImage: establishment?.main_image
+      });
+    }
+    
     return images;
   }, [establishment?.cover_image_url, establishment?.main_image, galleryImages]);
 

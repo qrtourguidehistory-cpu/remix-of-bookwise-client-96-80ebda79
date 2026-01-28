@@ -29,7 +29,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="com.miturnow.cliente"
-                    android:host="login-callback" />
+                    android:host="auth"
+                    android:pathPrefix="/callback" />
             </intent-filter>
 
         </activity>

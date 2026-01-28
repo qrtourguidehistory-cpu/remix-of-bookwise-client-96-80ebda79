@@ -17,6 +17,7 @@ import { useEstablishment } from "@/hooks/useEstablishments";
 import { useDBBusinessHours, getDefaultBusinessHours } from "@/hooks/useBusinessHours";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { usePreventDuplicateCalls } from "@/hooks/useDebounce";
 
 interface ServiceStaffAssignment {
   serviceId: string;
@@ -653,7 +654,8 @@ const BookingPage = () => {
     setStaffAssignments(assignments);
   };
 
-  const handleConfirm = async () => {
+  // Función interna que realiza la confirmación
+  const _handleConfirmInternal = async () => {
     // CRITICAL: Block booking if temporarily closed
     if (isTemporarilyClosed) {
       toast({
@@ -674,7 +676,7 @@ const BookingPage = () => {
       return;
     }
 
-    if (!canConfirm || !selectedDate || !selectedTime) return;
+    if (!canConfirm || !selectedDate || !selectedTime || isSubmitting) return;
 
     setIsSubmitting(true);
     const selectedSlot = timeSlots.find((s) => s.id === selectedTime);
@@ -811,6 +813,19 @@ const BookingPage = () => {
       setIsSubmitting(false);
     }
   };
+  
+  // Envolver con prevención de duplicados
+  const handleConfirm = usePreventDuplicateCalls(_handleConfirmInternal, 1000);
+  
+  // Limpiador de estado al desmontar la pantalla
+  useEffect(() => {
+    return () => {
+      // Liberar referencias pesadas cuando se desmonta
+      setDayAppointments([]);
+      setStaffDaySchedules({});
+      setStaffAssignments([]);
+    };
+  }, []);
 
   // Loading state
   if (loading) {

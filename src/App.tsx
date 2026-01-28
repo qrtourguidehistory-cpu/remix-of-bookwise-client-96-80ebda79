@@ -54,11 +54,12 @@ const PageLoader = () => (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      retry: 1,
+      staleTime: 2 * 60 * 1000, // 2 minutes - datos frescos por 2 minutos
+      gcTime: 30 * 60 * 1000, // 30 minutos en caché (agresivo para reducir peticiones)
+      refetchOnWindowFocus: false, // No refetch al volver a la ventana
+      refetchOnMount: false, // No refetch al montar si hay datos en caché
+      refetchOnReconnect: true, // Solo refetch si se reconecta
+      retry: 1, // Solo 1 reintento
     },
   },
 });

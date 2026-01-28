@@ -3,6 +3,7 @@ import { Heart, Star, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 export interface BusinessCompact {
   id: string;
@@ -59,9 +60,9 @@ export const BusinessCardCompact = memo(function BusinessCardCompact({ business,
     >
       {/* Cover Image - Main element with rounded corners on all 4 sides */}
       <div className="relative">
-        {business.coverImageUrl || business.imageUrl ? (
-          <img
-            src={business.coverImageUrl || business.imageUrl}
+        {(business.coverImageUrl || business.imageUrl) ? (
+          <OptimizedImage
+            src={business.coverImageUrl || business.imageUrl || ""}
             alt={business.name}
             loading="lazy"
             className="w-full aspect-[16/11] rounded-xl object-cover transition-transform duration-300 group-hover:scale-105"

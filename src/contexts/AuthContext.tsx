@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
 import { initPushNotifications } from '@/utils/pushNotifications';
+import { useCapacitorOAuth } from '@/hooks/useCapacitorOAuth';
 
 type ClientProfileRow = Tables<"client_profiles">;
 
@@ -42,34 +43,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const GOOGLE_WEB_CLIENT_ID = '762901353486-v2vvtk3oskg0t8rd58la8lums0tb87sa.apps.googleusercontent.com';
-
-let googleSocialLoginInit: Promise<void> | null = null;
-const ensureGoogleSocialLoginInitialized = async () => {
-  // No-op on web builds
-  const platform = Capacitor.getPlatform();
-  if (platform === 'web') return;
-
-  if (googleSocialLoginInit) return googleSocialLoginInit;
-
-  googleSocialLoginInit = (async () => {
-    const { SocialLogin } = await import('@capgo/capacitor-social-login');
-    await SocialLogin.initialize({
-      google: {
-        webClientId: GOOGLE_WEB_CLIENT_ID,
-      },
-    });
-  })();
-
-  return googleSocialLoginInit;
-};
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
+  
+  // Hook para OAuth con Supabase (igual que Partner)
+  const { signInWithOAuth } = useCapacitorOAuth();
 
   useEffect(() => {
     console.log('🔐 AuthContext: Configurando listener de autenticación...');
@@ -227,298 +209,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-    try {
-      const platform = Capacitor.getPlatform();
-      const isNative = Capacitor.isNativePlatform() || platform === 'android' || platform === 'ios';
-
-      console.log('🔵 ===== GOOGLE SIGN-IN INICIANDO =====');
-      console.log('🔵 Platform:', platform);
-      console.log('🔵 isNativePlatform():', Capacitor.isNativePlatform());
-      console.log('🔵 isNative (calculado):', isNative);
-      console.log('🔵 User Agent:', navigator.userAgent);
-
-      if (!isNative) {
-        // WEB: Use standard OAuth flow
-        console.log('🔵 Using WEB OAuth flow for Google Sign-In');
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/`,
-          },
-        });
-        return { error: error as Error | null };
-      }
-
-      // NATIVE: Use @capgo/capacitor-social-login for native Google Sign-In
-      console.log('🔵 Using NATIVE Google Sign-In via capacitor-social-login');
-      console.log('🔵 Web Client ID:', GOOGLE_WEB_CLIENT_ID);
-
-      try {
-        console.log('🔵 Step 1: Inicializando plugin SocialLogin...');
-        await ensureGoogleSocialLoginInitialized();
-        console.log('🔵 Step 1: ✅ Plugin inicializado correctamente');
-      } catch (initError) {
-        console.error('❌ Error al inicializar SocialLogin:', initError);
-        return {
-          error: new Error(
-            `Error al inicializar Google Sign-In: ${initError instanceof Error ? initError.message : String(initError)}`
-          ),
-        };
-      }
-
-      const { SocialLogin } = await import('@capgo/capacitor-social-login');
-
-      console.log('🔵 Step 2: Llamando SocialLogin.login()...');
-      let result;
-      try {
-        result = await SocialLogin.login({
-          provider: 'google',
-          options: {
-            // No se pasan scopes explícitos: el plugin añadirá por defecto email/profile/openid.
-            // filterByAuthorizedAccounts: false evita NoCredentialException en algunos dispositivos
-            filterByAuthorizedAccounts: false,
-          },
-        });
-        console.log('🔵 Step 2: ✅ SocialLogin.login() completado');
-        console.log('🔵 Result type:', typeof result);
-        console.log('🔵 Result keys:', result ? Object.keys(result) : 'null');
-      } catch (loginError) {
-        const errorMsg = loginError instanceof Error ? loginError.message : String(loginError);
-        console.error('❌ SocialLogin.login() error:', errorMsg);
-        
-        // Si el plugin rechazó el uso de scopes por falta de modificación de MainActivity, reintentar sin scopes
-        if (errorMsg.includes('You CANNOT use scopes')) {
-          console.warn('⚠️ SocialLogin rechazó el uso de scopes; reintentando sin scopes...');
-          try {
-            result = await SocialLogin.login({
-              provider: 'google',
-              options: {
-                filterByAuthorizedAccounts: false,
-              },
-            });
-            console.log('🔵 Step 2: ✅ Reintento SocialLogin.login() sin scopes completado');
-            console.log('🔵 Result keys:', result ? Object.keys(result) : 'null');
-          } catch (retryErr) {
-            const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
-            console.error('❌ Reintento sin scopes falló:', retryMsg);
-            if (retryMsg.includes('You CANNOT use scopes')) {
-              return {
-                error: new Error(
-                  'El build actual no permite usar scopes en Google Sign-In. Asegúrate de haber modificado `MainActivity` según la documentación del plugin o evita usar scopes.'
-                ),
-              };
-            }
-            return { error: retryErr as Error };
-          }
-        }
-        
-        // Errores específicos de Google Credential Manager
-        // Manejo: Cuenta requiere reautenticación (ApiException code 16) — fallback a OAuth web con deep link
-        if (errorMsg.includes('[16]') || errorMsg.toLowerCase().includes('reauth')) {
-          console.warn('⚠️ Google native sign-in requires reauthentication; falling back to web OAuth (deep link)');
-          try {
-            const redirectTo = 'com.miturnow.cliente://login-callback';
-            console.log('🔐 Usando redirectTo (fallback):', redirectTo);
-            const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: { redirectTo, skipBrowserRedirect: true },
-            });
-            if (oauthError) {
-              console.error('❌ Falló fallback OAuth web:', oauthError);
-              return { error: oauthError as Error };
-            }
-            if (data?.url) {
-              const { Browser } = await import('@capacitor/browser');
-              await Browser.open({ url: data.url });
-              return { error: null };
-            }
-            return { error: new Error('No se pudo generar URL de OAuth web para reintentar') };
-          } catch (fallbackErr) {
-            console.error('❌ Fallback a OAuth web falló:', fallbackErr);
-            return { error: fallbackErr as Error };
-          }
-        }
-
-        if (errorMsg.includes('NoCredentialException') || errorMsg.includes('no credentials')) {
-          return {
-            error: new Error(
-              'No se encontraron cuentas de Google en el dispositivo. Por favor, agrega una cuenta de Google en Configuración.'
-            ),
-          };
-        }
-        if (errorMsg.includes('canceled') || errorMsg.includes('cancelled')) {
-          return {
-            error: new Error('Inicio de sesión cancelado por el usuario.'),
-          };
-        }
-        
-        return { error: loginError as Error };
-      }
-
-      const idToken = ((result?.result as { idToken?: string | null })?.idToken ?? null) || null;
-      console.log('🔵 Step 3: Extrayendo idToken...');
-      console.log('🔵 Has idToken:', !!idToken);
-      console.log('🔵 idToken length:', idToken?.length || 0);
-
-      if (!idToken) {
-        console.error('❌ No se recibió idToken de Google');
-        console.error('❌ Result completo:', JSON.stringify(result, null, 2));
-        return {
-          error: new Error(
-            'Google no devolvió idToken. Verifica:\n1. Web Client ID correcto en Google Cloud Console\n2. SHA-1 del keystore registrado en Google Cloud Console\n3. Package name: com.miturnow.cliente'
-          ),
-        };
-      }
-
-      console.log('🔵 Step 4: Llamando supabase.auth.signInWithIdToken()...');
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: idToken,
-      });
-
-      if (error) {
-        console.error('❌ Supabase signInWithIdToken error:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          status: error.status,
-          name: error.name
-        });
-        return { error: error as Error };
-      }
-
-      console.log('✅ ===== GOOGLE SIGN-IN EXITOSO =====');
-      return { error: null };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error('❌ Google Sign-In error general:', message);
-      console.error('❌ Stack:', err instanceof Error ? err.stack : 'N/A');
-
-      if (/not implemented|plugin/i.test(message)) {
-        return {
-          error: new Error(
-            'Google Sign-In nativo no está disponible. Ejecuta:\n1. npm run build\n2. npx cap sync android\n3. Rebuild en Android Studio'
-          ),
-        };
-      }
-
-      return { error: err as Error };
-    }
+    // Usar OAuth de Supabase exclusivamente (igual que Partner)
+    return await signInWithOAuth('google');
   };
 
   const signInWithApple = async () => {
-    try {
-      const { Capacitor } = await import('@capacitor/core');
-      
-      // CRITICAL: Multiple ways to detect Android/iOS (same as Google)
-      const platform = Capacitor.getPlatform();
-      const isNativePlatform = Capacitor.isNativePlatform();
-      
-      // Check window.location to detect Android WebView
-      const windowLocation = typeof window !== 'undefined' ? window.location : null;
-      const isCapacitorProtocol = windowLocation?.protocol === 'capacitor:' || 
-                                   windowLocation?.protocol === 'https:' && windowLocation?.hostname === 'localhost';
-      const isAndroidHostname = windowLocation?.hostname === 'localhost' && 
-                                windowLocation?.port === '' && 
-                                windowLocation?.protocol === 'https:';
-      
-      // User agent check as fallback
-      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-      const isAndroidUA = /Android/i.test(userAgent);
-      const isIOSUA = /iPhone|iPad|iPod/i.test(userAgent);
-      
-      // FORCE detection: Multiple checks to ensure we catch Android/iOS
-      const isDefinitelyNative = platform === 'android' || 
-                                 platform === 'ios' || 
-                                 isNativePlatform ||
-                                 isCapacitorProtocol ||
-                                 isAndroidHostname ||
-                                 (isAndroidUA && !windowLocation?.hostname.includes('.')) ||
-                                 isIOSUA;
-      
-      // FORMA CORRECTA EN CAPACITOR: Usar deep link explícito
-      const redirectTo = isDefinitelyNative 
-        ? 'com.miturnow.cliente://login-callback' 
-        : `${windowLocation?.origin || 'http://localhost:3000'}/`;
-      
-      console.log('🍎 ===== INICIANDO APPLE OAUTH CON SUPABASE (FORMA CORRECTA) =====');
-      console.log('🍎 Configuración:');
-      console.log('  - redirectTo:', redirectTo);
-      console.log('  - isDefinitelyNative:', isDefinitelyNative);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: { 
-          redirectTo: redirectTo, // Deep link explícito para mobile
-          skipBrowserRedirect: true, // Interceptar la URL para abrirla manualmente
-        },
-      });
-      
-      console.log('📥 Respuesta de Supabase signInWithOAuth (Apple):', {
-        hasData: !!data,
-        hasError: !!error,
-        dataUrl: data?.url,
-        errorMessage: error?.message
-      });
-      
-      if (error) {
-        console.error('❌ Supabase OAuth Error (Apple):', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          status: error.status,
-          name: error.name
-        });
-      } else if (data?.url) {
-        // CRITICAL: ALWAYS intercept and verify/fix the URL for mobile (same as Google)
-        try {
-          const urlObj = new URL(data.url);
-          const redirectUri = urlObj.searchParams.get('redirect_uri');
-          
-          console.log('🔍 redirect_uri en URL de Supabase (Apple):', redirectUri);
-          console.log('🔍 URL completa de Supabase (Apple):', data.url.substring(0, 200) + '...');
-          
-          // Verificar el redirect_uri (solo para logging)
-          if (redirectUri && redirectUri.includes('com.miturnow.cliente://login-callback')) {
-            console.log('✅ CORRECTO: Supabase está usando com.miturnow.cliente://login-callback');
-            console.log('✅ redirect_uri:', redirectUri);
-          } else {
-            console.log('🔍 redirect_uri en URL de Supabase (Apple):', redirectUri);
-          }
-        } catch (e) {
-          console.error('❌ Error al parsear URL de Supabase (Apple):', e);
-          console.error('❌ URL que causó el error:', data.url);
-        }
-        
-        // Abrir la URL de Apple OAuth
-        if (data?.url) {
-          console.log('✅ OAuth iniciado correctamente (Apple)');
-          console.log('✅ URL generada por Supabase:', data?.url?.substring(0, 200));
-          console.log('✅ redirectTo usado:', redirectTo);
-          
-          try {
-            const { Browser } = await import('@capacitor/browser');
-            await Browser.open({ url: data.url });
-            console.log('✅ URL de Apple OAuth abierta con Capacitor Browser');
-            return { error: null };
-          } catch (browserError) {
-            console.error('❌ Error al abrir Browser:', browserError);
-            // Fallback
-            if (typeof window !== 'undefined' && window.open) {
-              window.open(data.url, '_blank');
-              console.log('✅ URL abierta con window.open');
-            } else {
-              window.location.href = data.url;
-              console.log('✅ URL abierta con window.location.href');
-            }
-            return { error: null };
-          }
-        }
-      }
-      
-      return { error: error as Error | null };
-    } catch (error) {
-      console.error('❌ Apple Sign-In error:', error);
-      return { error: error as Error };
-    }
+    // Usar OAuth de Supabase exclusivamente (igual que Partner)
+    return await signInWithOAuth('apple');
   };
 
   const signInWithPhone = async (phone: string) => {

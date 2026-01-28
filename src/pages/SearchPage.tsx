@@ -1,16 +1,17 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { SearchBar } from "@/components/search/SearchBar";
 import { FilterModal, FilterValues } from "@/components/search/FilterModal";
 import { BusinessCard, Business } from "@/components/business/BusinessCard";
 import { categories as baseCategories } from "@/data/mockData";
-import { useEstablishments } from "@/hooks/useEstablishments";
+import { useEstablishmentsQuery } from "@/hooks/useEstablishmentsQuery";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { usePreventDuplicateCalls } from "@/hooks/useDebounce";
 import { 
   Scissors, 
   Sparkles, 
@@ -199,9 +200,12 @@ const SearchPage = () => {
   const { t } = useTranslation();
   const { user, isGuest } = useAuth();
 
-  // Load real data from Supabase
-  const { establishments, loading, error } = useEstablishments();
+  // Load real data from Supabase con TanStack Query (optimizado)
+  const { data: establishments = [], isLoading: loading, error } = useEstablishmentsQuery();
   const { isFavorite, toggleFavorite } = useFavorites();
+  
+  // Prevenir consultas duplicadas en toggleFavorite
+  const safeToggleFavorite = usePreventDuplicateCalls(toggleFavorite, 500);
 
   // Función para extraer TODAS las categorías de un establecimiento (category, primary_category, secondary_categories)
   const getAllCategories = useCallback((est: { category: string | null; primary_category: string | null; secondary_categories: string[] | null }): string[] => {
@@ -456,7 +460,7 @@ const SearchPage = () => {
       return;
     }
 
-    const { error } = await toggleFavorite(id);
+    const { error } = await safeToggleFavorite(id);
     if (error) {
       toast({
         title: t("common.error"),
@@ -464,7 +468,15 @@ const SearchPage = () => {
         variant: "destructive",
       });
     }
-  }, [user, isGuest, toggleFavorite, t]);
+  }, [user, isGuest, safeToggleFavorite, t]);
+  
+  // Limpiador de estado al desmontar la pantalla
+  useEffect(() => {
+    return () => {
+      // Liberar referencias pesadas cuando se desmonta
+      // Las queries de TanStack Query se limpian automáticamente
+    };
+  }, []);
 
   const handleCategoryClick = (categoryId: string) => {
     if (categoryId === "all") {

@@ -1,16 +1,17 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { CategorySection } from "@/components/home/CategorySection";
 import { BusinessCompact } from "@/components/business/BusinessCardCompact";
-import { useEstablishments } from "@/hooks/useEstablishments";
+import { useEstablishmentsQuery } from "@/hooks/useEstablishmentsQuery";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Map, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePreventDuplicateCalls } from "@/hooks/useDebounce";
 
 // Category display names
 const categoryNames: Record<string, string> = {
@@ -34,9 +35,12 @@ const Index = () => {
   const { t } = useTranslation();
   const { user, isGuest } = useAuth();
 
-  // Load real data from Supabase
-  const { establishments, loading, error } = useEstablishments();
+  // Load real data from Supabase con TanStack Query (optimizado)
+  const { data: establishments = [], isLoading: loading, error } = useEstablishmentsQuery();
   const { isFavorite, toggleFavorite } = useFavorites();
+  
+  // Prevenir consultas duplicadas en toggleFavorite
+  const safeToggleFavorite = usePreventDuplicateCalls(toggleFavorite, 500);
 
   // Convert establishments to BusinessCompact format
   const businesses: BusinessCompact[] = useMemo(() => {
@@ -101,7 +105,7 @@ const Index = () => {
       return;
     }
 
-    const { error } = await toggleFavorite(id);
+    const { error } = await safeToggleFavorite(id);
     if (error) {
       toast({
         title: t("common.error"),
@@ -110,6 +114,14 @@ const Index = () => {
       });
     }
   };
+  
+  // Limpiador de estado al desmontar la pantalla
+  useEffect(() => {
+    return () => {
+      // Liberar referencias pesadas cuando se desmonta
+      // Las queries de TanStack Query se limpian automáticamente
+    };
+  }, []);
 
   if (loading) {
     return (

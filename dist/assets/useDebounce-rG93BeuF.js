@@ -1,0 +1,1 @@
+import{r as n}from"./index-DQJT4g5E.js";function i(t,r=500){const[s,e]=n.useState(!1);return async(...a)=>{if(s)return console.log("⏸️ Prevención de llamada duplicada"),Promise.resolve();e(!0);try{return await t(...a)}finally{setTimeout(()=>{e(!1)},r)}}}export{i as u};

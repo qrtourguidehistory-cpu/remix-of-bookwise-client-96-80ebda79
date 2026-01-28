@@ -151,39 +151,21 @@ export const useDeepLinks = () => {
           
           console.log('🔗 DEEP LINK RECIBIDO:', event.url);
           
+          // Detectar callback OAuth por contenido de URL (igual que Partner)
+          if (event.url.includes('/auth/callback')) {
+            console.log('✅ Callback OAuth detectado:', event.url);
+            await handleOAuthCallback(event.url, supabase, navigate);
+            return;
+          }
+          
           try {
             const url = new URL(event.url);
-            
-            // Capturar callbacks OAuth con el esquema correcto (deep link)
-            if ((url.protocol === 'com.miturnow.cliente:' || url.protocol === 'bookwise:') && url.host === 'login-callback') {
-              console.log('✅ Callback OAuth detectado (deep link):', event.url);
-              await handleOAuthCallback(event.url, supabase, navigate);
-              return;
-            }
-            
-            // Capturar URLs HTTPS de Supabase OAuth callback
-            if (url.protocol === 'https:' && url.hostname.includes('supabase.co') && url.pathname.includes('/auth/v1/callback')) {
-              console.log('✅ Callback OAuth detectado (Supabase HTTPS):', event.url);
-              await handleOAuthCallback(event.url, supabase, navigate);
-              return;
-            }
-            
             const path = url.pathname;
             if (path && mountedRef.current) {
               navigate(path, { replace: true });
             }
           } catch (e) {
             console.log('⚠️ Error al parsear URL:', e);
-            
-            // Detectar callback OAuth por contenido de URL (fallback)
-            if (event.url.includes('com.miturnow.cliente://login-callback') || 
-                event.url.includes('bookwise://login-callback') ||
-                (event.url.includes('supabase.co') && event.url.includes('/auth/v1/callback'))) {
-              console.log('✅ Callback OAuth detectado (fallback):', event.url);
-              await handleOAuthCallback(event.url, supabase, navigate);
-              return;
-            }
-            
             const customPath = event.url.replace(/^[^:]+:\/\//, '/');
             if (customPath && customPath !== '/' && mountedRef.current) {
               navigate(customPath, { replace: true });
@@ -201,11 +183,7 @@ export const useDeepLinks = () => {
             try {
               const launchUrl = await App.getLaunchUrl();
               
-              if (launchUrl?.url && (
-                launchUrl.url.includes('com.miturnow.cliente://login-callback') || 
-                launchUrl.url.includes('bookwise://login-callback') ||
-                (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))
-              )) {
+              if (launchUrl?.url && launchUrl.url.includes('/auth/callback')) {
                 console.log('🚀 URL de lanzamiento OAuth detectada:', launchUrl.url);
                 await handleOAuthCallback(launchUrl.url, supabase, navigate);
               }
@@ -228,9 +206,7 @@ export const useDeepLinks = () => {
         if (launchUrl?.url && mountedRef.current) {
           console.log('🚀 URL de lanzamiento inicial:', launchUrl.url);
           
-          if (launchUrl.url.includes('com.miturnow.cliente://login-callback') || 
-              launchUrl.url.includes('bookwise://login-callback') ||
-              (launchUrl.url.includes('supabase.co') && launchUrl.url.includes('/auth/v1/callback'))) {
+          if (launchUrl.url.includes('/auth/callback')) {
             console.log('🚀 URL de lanzamiento OAuth detectada (inicial):', launchUrl.url);
             await handleOAuthCallback(launchUrl.url, supabase, navigate);
             return;
