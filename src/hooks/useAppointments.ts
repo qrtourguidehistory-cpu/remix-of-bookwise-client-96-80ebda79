@@ -17,6 +17,12 @@ export interface Appointment extends AppointmentRow {
     id: string;
     full_name: string | null;
   } | null;
+  clients?: {
+    first_name: string | null;
+    last_name: string | null;
+    full_name: string | null;
+    email: string | null;
+  } | null;
   services?: Array<{
     id: string;
     name: string;
@@ -73,6 +79,7 @@ export function useAppointments() {
       setLoading(true);
       
       // Build query with user filtering
+      // IMPORTANTE: NO incluir clients en el JOIN inicial - lo haremos después para evitar problemas
       let query = supabase
         .from("appointments")
         .select(`
@@ -114,6 +121,49 @@ export function useAppointments() {
       if (error) {
         console.error("Error fetching appointments:", error);
         throw error;
+      }
+
+      // REESTRUCTURACIÓN COMPLETA: Obtener datos de clients de forma correcta y limpia
+      // Estrategia: Para cada cita, obtener su cliente específico usando user_id + business_id
+      // IMPORTANTE: Cada cita debe obtener SU PROPIO cliente, no compartir datos
+      
+      // Obtener todas las combinaciones únicas de user_id + business_id de las citas
+      const uniqueKeys = new Set<string>();
+      const appointmentsWithUserBusiness = (data || []).filter(
+        (apt: any) => apt.user_id && apt.business_id
+      );
+      
+      appointmentsWithUserBusiness.forEach((apt: any) => {
+        const key = `${apt.user_id}::${apt.business_id}`;
+        uniqueKeys.add(key);
+      });
+      
+      // Crear mapa de clients por user_id + business_id
+      const clientsMap: Record<string, any> = {};
+      
+      // Consultar clients para cada combinación única
+      if (uniqueKeys.size > 0) {
+        const clientPromises = Array.from(uniqueKeys).map(async (key) => {
+          const [user_id, business_id] = key.split('::');
+          const { data: clientData, error: clientError } = await supabase
+            .from("clients")
+            .select("id, user_id, business_id, first_name, last_name, full_name, email")
+            .eq("user_id", user_id)
+            .eq("business_id", business_id)
+            .maybeSingle();
+          
+          if (!clientError && clientData) {
+            return { key, data: clientData };
+          }
+          return null;
+        });
+        
+        const clientsResults = await Promise.all(clientPromises);
+        clientsResults.forEach((result) => {
+          if (result) {
+            clientsMap[result.key] = result.data;
+          }
+        });
       }
 
       const transformedData = ((data || []) as any[]).map((apt) => {
@@ -203,10 +253,34 @@ export function useAppointments() {
         // Determine appointment currency - use first service's currency
         const appointmentCurrency = services.length > 0 ? services[0].currency : "RD$";
 
+        // Obtener los datos del cliente que reservó desde la tabla clients
+        // IMPORTANTE: Cada cita obtiene SU PROPIO cliente usando user_id + business_id
+        // NO compartir datos entre citas - cada una es independiente
+        let clientData = null;
+        
+        if (apt.user_id && apt.business_id) {
+          const key = `${apt.user_id}::${apt.business_id}`;
+          const mappedClient = clientsMap[key];
+          
+          // Crear un nuevo objeto para esta cita específica (no compartir referencias)
+          if (mappedClient) {
+            clientData = {
+              first_name: mappedClient.first_name || null,
+              last_name: mappedClient.last_name || null,
+              full_name: mappedClient.full_name || null,
+              email: mappedClient.email || null,
+            };
+          }
+        }
+        
+        // Reservador es el cliente que reservó (dueño de cuenta)
+        const reservador = clientData;
+
         return {
           ...apt,
           establishment,
           staff: apt.staff,
+          clients: reservador, // Datos del cliente desde tabla clients para "Reservado por"
           services: services.length > 0 ? services : undefined,
           price_currency: appointmentCurrency,
           price_rd: totalPriceRD,
@@ -265,6 +339,66 @@ export function useAppointments() {
       
       console.log("Business verified:", inputId);
       
+      // ============================================
+      // Buscar o crear cliente en tabla clients
+      // ============================================
+      let clientId: string | null = null;
+      
+      if (user?.id) {
+        // Buscar si ya existe un registro en clients para ESTE usuario y ESTE negocio
+        // Este registro representa al DUEÑO DE LA CUENTA (quien reserva), NO al beneficiario puntual
+        const { data: existingClient, error: clientSearchError } = await supabase
+          .from("clients")
+          .select("id, full_name, email, phone")
+          .eq("user_id", user.id)
+          .eq("business_id", inputId)
+          .maybeSingle();
+        
+        if (clientSearchError && clientSearchError.code !== 'PGRST116') {
+          // PGRST116 = no rows returned (expected), otros errores son problemas reales
+          console.error("Error searching for client:", clientSearchError);
+        }
+        
+        if (existingClient?.id) {
+          // Cliente ya existe, usar su ID
+          clientId = existingClient.id;
+          console.log("Found existing client:", clientId);
+        } else {
+          // Cliente no existe, crear uno nuevo
+          // IMPORTANTE:
+          // - Este registro en clients representa al DUEÑO DE LA CUENTA (usuario que reserva)
+          // - Su full_name debe venir del perfil del usuario, NO del nombre del beneficiario de la cita
+          const clientData: TablesInsert<"clients"> = {
+            user_id: user.id, // ID del usuario que reserva (para rastrear quién hizo la reserva)
+            business_id: inputId,
+            full_name: profile?.full_name || null, // Nombre del dueño de la cuenta (perfil del usuario)
+            first_name: null,
+            last_name: null,
+            email: profile?.email || null,
+            phone: profile?.phone || null,
+            is_active: true,
+            is_blocked: false,
+          };
+          
+          const { data: newClient, error: clientCreateError } = await supabase
+            .from("clients")
+            .insert(clientData)
+            .select("id")
+            .single();
+          
+          if (clientCreateError) {
+            console.error("Error creating client:", clientCreateError);
+            // No fallar la creación de la cita si falla la creación del cliente
+            // Solo loguear el error - el client_name se guardará en la cita de todas formas
+            console.warn("Could not create client record, proceeding without client_id");
+          } else {
+            clientId = newClient.id;
+            console.log("Created new client:", clientId);
+          }
+        }
+      }
+      // ============================================
+      
       // Calculate end time properly
       const endTime = calculateEndTime(appointmentData.start_time, appointmentData.duration_minutes);
 
@@ -278,11 +412,14 @@ export function useAppointments() {
       const firstValidServiceId = appointmentData.services.find(s => isValidUUID(s.id))?.id || null;
 
       // Build insert data based on source table
+      // IMPORTANTE: client_name debe ser el nombre de la persona PARA QUIEN es la cita
+      // Este es el nombre que se mostrará en el calendario y detalles de la app Partner
       const insertData: TablesInsert<"appointments"> = {
-        user_id: user?.id || null, // Add user_id to link appointment to user
+        user_id: user?.id || null, // Add user_id to link appointment to user (quien reserva)
+        client_id: clientId, // Asignar client_id para que la app Partner pueda obtener email/teléfono
         staff_id: staffId,
         service_id: firstValidServiceId, // Set service_id for Partner app calendar view compatibility
-        client_name: appointmentData.client_name,
+        client_name: appointmentData.client_name || null, // Nombre de la persona PARA QUIEN es la cita (no quien reserva)
         client_email: appointmentData.client_email || null,
         client_phone: appointmentData.client_phone || null,
         date: appointmentData.date,
@@ -297,6 +434,9 @@ export function useAppointments() {
       // Use business_id (establishments table no longer exists)
       insertData.business_id = inputId;
       console.log("Saving appointment with business_id:", inputId);
+      console.log("Saving appointment with client_id:", clientId);
+      console.log("Saving appointment with client_name:", appointmentData.client_name);
+      console.log("Saving appointment with user_id:", user?.id);
 
       console.log("Insert data:", JSON.stringify(insertData, null, 2));
 

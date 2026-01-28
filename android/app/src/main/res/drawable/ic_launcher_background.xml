@@ -4,8 +4,8 @@
     android:height="108dp"
     android:viewportHeight="108"
     android:viewportWidth="108">
-    <!-- Fondo naranja para el icono -->
+    <!-- Fondo blanco para el icono -->
     <path
-        android:fillColor="#EA580C"
+        android:fillColor="#FFFFFF"
         android:pathData="M0,0h108v108h-108z" />
 </vector>

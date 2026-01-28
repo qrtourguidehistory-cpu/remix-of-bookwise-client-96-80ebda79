@@ -20,6 +20,12 @@ interface AppointmentDetailDialogProps {
     staff?: {
       full_name: string | null;
     };
+    clients?: {
+      first_name: string | null;
+      last_name: string | null;
+      full_name: string | null;
+      email: string | null;
+    } | null;
     services?: Array<{
       id: string;
       name: string;
@@ -242,7 +248,7 @@ export function AppointmentDetailDialog({
             </div>
           )}
 
-          {/* Client Information */}
+          {/* Client Information - A nombre de (quien recibe el servicio) */}
           {appointment.client_name && (
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
@@ -265,6 +271,27 @@ export function AppointmentDetailDialog({
                     {appointment.client_email}
                   </p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Reserved By - Reservado por (quien hizo la reserva) */}
+          {/* IMPORTANTE: Usar clients.first_name y clients.last_name de la tabla clients, NO client_name */}
+          {/* client_name es solo para el beneficiario (encabezado), NO para "Reservado por" */}
+          {appointment.clients && (
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <User className="w-5 h-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Reservado por</p>
+                <p className="font-medium text-foreground">
+                  {appointment.clients.first_name && appointment.clients.last_name
+                    ? `${appointment.clients.first_name} ${appointment.clients.last_name}`.trim()
+                    : appointment.clients.full_name || 
+                      appointment.clients.email ||
+                      'Usuario'}
+                </p>
               </div>
             </div>
           )}
