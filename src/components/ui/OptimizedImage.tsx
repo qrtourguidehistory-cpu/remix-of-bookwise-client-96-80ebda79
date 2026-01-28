@@ -75,12 +75,8 @@ export const OptimizedImage = memo(function OptimizedImage({
     const handleError = () => {
       setImageError(true);
       setShowPlaceholder(false);
-      if (onError) {
-        const syntheticEvent = {
-          currentTarget: imgRef.current,
-          target: imgRef.current,
-        } as React.SyntheticEvent<HTMLImageElement, Event>;
-        onError(syntheticEvent);
+      if (onError && imgRef.current) {
+        onError({ currentTarget: imgRef.current, target: imgRef.current } as unknown as React.SyntheticEvent<HTMLImageElement, Event>);
       }
     };
 

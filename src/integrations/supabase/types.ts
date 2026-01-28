@@ -107,27 +107,33 @@ export type Database = {
           created_at: string | null
           id: string
           meta: Json | null
+          role: string | null
           send_at: string
           status: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           appointment_id?: string | null
           created_at?: string | null
           id?: string
           meta?: Json | null
+          role?: string | null
           send_at: string
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           appointment_id?: string | null
           created_at?: string | null
           id?: string
           meta?: Json | null
+          role?: string | null
           send_at?: string
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -925,6 +931,112 @@ export type Database = {
           },
         ]
       }
+      business_subscriptions: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          activation_note: string | null
+          amount_due: number | null
+          amount_paid: number | null
+          business_id: string
+          created_at: string | null
+          current_period_end: string | null
+          days_overdue: number | null
+          id: string
+          last_payment_date: string | null
+          manually_activated: boolean | null
+          monthly_fee: number
+          next_payment_date: string | null
+          notes: string | null
+          owner_id: string
+          payment_due_date: string | null
+          payment_history: Json | null
+          payment_method: string | null
+          paypal_subscription_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_plan: string
+          updated_at: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_note?: string | null
+          amount_due?: number | null
+          amount_paid?: number | null
+          business_id: string
+          created_at?: string | null
+          current_period_end?: string | null
+          days_overdue?: number | null
+          id?: string
+          last_payment_date?: string | null
+          manually_activated?: boolean | null
+          monthly_fee?: number
+          next_payment_date?: string | null
+          notes?: string | null
+          owner_id: string
+          payment_due_date?: string | null
+          payment_history?: Json | null
+          payment_method?: string | null
+          paypal_subscription_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string
+          updated_at?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          activation_note?: string | null
+          amount_due?: number | null
+          amount_paid?: number | null
+          business_id?: string
+          created_at?: string | null
+          current_period_end?: string | null
+          days_overdue?: number | null
+          id?: string
+          last_payment_date?: string | null
+          manually_activated?: boolean | null
+          monthly_fee?: number
+          next_payment_date?: string | null
+          notes?: string | null
+          owner_id?: string
+          payment_due_date?: string | null
+          payment_history?: Json | null
+          payment_method?: string | null
+          paypal_subscription_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["establishment_id"]
+          },
+          {
+            foreignKeyName: "business_subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_working_hours: {
         Row: {
           created_at: string | null
@@ -971,6 +1083,9 @@ export type Database = {
           address: string | null
           approval_status: string | null
           average_rating: number | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_reason: string | null
           business_name: string | null
           category: string | null
           closed_until: string | null
@@ -981,6 +1096,7 @@ export type Database = {
           google_maps_url: string | null
           id: string
           is_active: boolean | null
+          is_banned: boolean | null
           is_public: boolean | null
           latitude: number | null
           locale_settings: Json | null
@@ -1008,6 +1124,9 @@ export type Database = {
           address?: string | null
           approval_status?: string | null
           average_rating?: number | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           business_name?: string | null
           category?: string | null
           closed_until?: string | null
@@ -1018,6 +1137,7 @@ export type Database = {
           google_maps_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
           locale_settings?: Json | null
@@ -1045,6 +1165,9 @@ export type Database = {
           address?: string | null
           approval_status?: string | null
           average_rating?: number | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           business_name?: string | null
           category?: string | null
           closed_until?: string | null
@@ -1055,6 +1178,7 @@ export type Database = {
           google_maps_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_public?: boolean | null
           latitude?: number | null
           locale_settings?: Json | null
@@ -1163,27 +1287,33 @@ export type Database = {
         Row: {
           created_at: string | null
           device_info: Json | null
+          enabled: boolean
           fcm_token: string
           id: string
           platform: string
+          role: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           device_info?: Json | null
+          enabled?: boolean
           fcm_token: string
           id?: string
           platform: string
+          role?: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           device_info?: Json | null
+          enabled?: boolean
           fcm_token?: string
           id?: string
           platform?: string
+          role?: string
           updated_at?: string | null
           user_id?: string
         }
@@ -1199,6 +1329,7 @@ export type Database = {
           message: string
           meta: Json | null
           read: boolean | null
+          role: string
           title: string
           type: string
           user_id: string
@@ -1212,6 +1343,7 @@ export type Database = {
           message: string
           meta?: Json | null
           read?: boolean | null
+          role?: string
           title: string
           type: string
           user_id: string
@@ -1225,6 +1357,7 @@ export type Database = {
           message?: string
           meta?: Json | null
           read?: boolean | null
+          role?: string
           title?: string
           type?: string
           user_id?: string
@@ -1271,6 +1404,9 @@ export type Database = {
         Row: {
           accepts_marketing: boolean | null
           avatar_url: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_reason: string | null
           biometric_enabled: boolean | null
           country_code: string | null
           created_at: string | null
@@ -1278,6 +1414,7 @@ export type Database = {
           first_name: string | null
           full_name: string | null
           id: string
+          is_banned: boolean | null
           last_name: string | null
           phone: string | null
           push_token: string | null
@@ -1286,6 +1423,9 @@ export type Database = {
         Insert: {
           accepts_marketing?: boolean | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           biometric_enabled?: boolean | null
           country_code?: string | null
           created_at?: string | null
@@ -1293,6 +1433,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id: string
+          is_banned?: boolean | null
           last_name?: string | null
           phone?: string | null
           push_token?: string | null
@@ -1301,6 +1442,9 @@ export type Database = {
         Update: {
           accepts_marketing?: boolean | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           biometric_enabled?: boolean | null
           country_code?: string | null
           created_at?: string | null
@@ -1308,6 +1452,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_banned?: boolean | null
           last_name?: string | null
           phone?: string | null
           push_token?: string | null
@@ -1319,6 +1464,9 @@ export type Database = {
         Row: {
           allergy_notes: string | null
           avatar_url: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_reason: string | null
           blocked_at: string | null
           blocked_reason: string | null
           business_id: string | null
@@ -1328,6 +1476,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean | null
+          is_banned: boolean | null
           is_blocked: boolean
           last_name: string | null
           notes: string | null
@@ -1341,6 +1490,9 @@ export type Database = {
         Insert: {
           allergy_notes?: string | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           business_id?: string | null
@@ -1350,6 +1502,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_blocked?: boolean
           last_name?: string | null
           notes?: string | null
@@ -1363,6 +1516,9 @@ export type Database = {
         Update: {
           allergy_notes?: string | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           business_id?: string | null
@@ -1372,6 +1528,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          is_banned?: boolean | null
           is_blocked?: boolean
           last_name?: string | null
           notes?: string | null
@@ -1902,29 +2059,53 @@ export type Database = {
       }
       notification_settings: {
         Row: {
+          appointment_cancellation_enabled: boolean | null
+          appointment_status_change_enabled: boolean | null
           business_id: string | null
+          confirmation_enabled: boolean | null
           created_at: string | null
           email_notifications: boolean | null
           id: string
+          new_appointment_enabled: boolean | null
+          new_review_enabled: boolean | null
+          payment_received_enabled: boolean | null
           push_notifications: boolean | null
+          reminder_enabled: boolean | null
+          review_request_enabled: boolean | null
           sms_notifications: boolean | null
           updated_at: string | null
         }
         Insert: {
+          appointment_cancellation_enabled?: boolean | null
+          appointment_status_change_enabled?: boolean | null
           business_id?: string | null
+          confirmation_enabled?: boolean | null
           created_at?: string | null
           email_notifications?: boolean | null
           id?: string
+          new_appointment_enabled?: boolean | null
+          new_review_enabled?: boolean | null
+          payment_received_enabled?: boolean | null
           push_notifications?: boolean | null
+          reminder_enabled?: boolean | null
+          review_request_enabled?: boolean | null
           sms_notifications?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          appointment_cancellation_enabled?: boolean | null
+          appointment_status_change_enabled?: boolean | null
           business_id?: string | null
+          confirmation_enabled?: boolean | null
           created_at?: string | null
           email_notifications?: boolean | null
           id?: string
+          new_appointment_enabled?: boolean | null
+          new_review_enabled?: boolean | null
+          payment_received_enabled?: boolean | null
           push_notifications?: boolean | null
+          reminder_enabled?: boolean | null
+          review_request_enabled?: boolean | null
           sms_notifications?: boolean | null
           updated_at?: string | null
         }
@@ -1954,30 +2135,39 @@ export type Database = {
       }
       notifications: {
         Row: {
+          appointment_id: string | null
+          client_id: string | null
           created_at: string | null
           id: string
           link: string | null
           message: string | null
+          meta: Json | null
           read: boolean | null
           title: string
           type: string | null
           user_id: string
         }
         Insert: {
+          appointment_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           link?: string | null
           message?: string | null
+          meta?: Json | null
           read?: boolean | null
           title: string
           type?: string | null
           user_id: string
         }
         Update: {
+          appointment_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           id?: string
           link?: string | null
           message?: string | null
+          meta?: Json | null
           read?: boolean | null
           title?: string
           type?: string | null
@@ -2092,6 +2282,9 @@ export type Database = {
         Row: {
           accepts_marketing: boolean | null
           avatar_url: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_reason: string | null
           biometric_enabled: boolean | null
           business_id: string | null
           country_code: string | null
@@ -2100,6 +2293,7 @@ export type Database = {
           first_name: string | null
           full_name: string | null
           id: string
+          is_banned: boolean | null
           last_name: string | null
           onboarding_step: number | null
           phone: string | null
@@ -2110,6 +2304,9 @@ export type Database = {
         Insert: {
           accepts_marketing?: boolean | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           biometric_enabled?: boolean | null
           business_id?: string | null
           country_code?: string | null
@@ -2118,6 +2315,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id: string
+          is_banned?: boolean | null
           last_name?: string | null
           onboarding_step?: number | null
           phone?: string | null
@@ -2128,6 +2326,9 @@ export type Database = {
         Update: {
           accepts_marketing?: boolean | null
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_reason?: string | null
           biometric_enabled?: boolean | null
           business_id?: string | null
           country_code?: string | null
@@ -2136,6 +2337,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_banned?: boolean | null
           last_name?: string | null
           onboarding_step?: number | null
           phone?: string | null
@@ -2861,6 +3063,80 @@ export type Database = {
           },
         ]
       }
+      subscription_invoices: {
+        Row: {
+          amount: number
+          business_id: string
+          created_at: string
+          currency: string
+          id: string
+          invoice_pdf_url: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          stripe_invoice_id: string | null
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_pdf_url?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_pdf_url?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["establishment_id"]
+          },
+          {
+            foreignKeyName: "subscription_invoices_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "business_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2963,6 +3239,17 @@ export type Database = {
       }
     }
     Functions: {
+      call_send_push_notification: {
+        Args: {
+          p_body: string
+          p_data?: Json
+          p_notification_id?: string
+          p_role: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       check_role_conflict: {
         Args: {
           p_desired_role: Database["public"]["Enums"]["role_type"]
@@ -2982,11 +3269,16 @@ export type Database = {
           success: boolean
         }[]
       }
+      determine_user_role: { Args: { p_user_id: string }; Returns: string }
       ensure_notification_settings: {
         Args: { business_uuid: string }
         Returns: string
       }
       expire_old_reviews: { Args: never; Returns: undefined }
+      force_update_business_visibility: {
+        Args: { business_id_param: string }
+        Returns: undefined
+      }
       get_businesses_with_category: {
         Args: { category_id: string }
         Returns: {
@@ -2997,6 +3289,15 @@ export type Database = {
           secondary_categories: string[]
         }[]
       }
+      get_client_user_id_from_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: string
+      }
+      get_partner_user_id_from_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: string
+      }
+      get_service_role_key: { Args: never; Returns: string }
       get_user_business_id: { Args: never; Returns: string }
       get_user_establishment_id: {
         Args: { _user_id?: string }
@@ -3027,6 +3328,7 @@ export type Database = {
         }
         Returns: Json
       }
+      is_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_admin_or_staff: { Args: { _user_id?: string }; Returns: boolean }
       is_partner_viewing_client_profile: {
         Args: { client_profile_id: string }
@@ -3036,6 +3338,7 @@ export type Database = {
         Args: { client_profile_id: string }
         Returns: boolean
       }
+      manage_grace_period: { Args: never; Returns: undefined }
       respond_to_early_arrival_request: {
         Args: { p_request_id: string; p_response: string }
         Returns: {
@@ -3069,6 +3372,9 @@ export type Database = {
           website: string
         }[]
       }
+      send_payment_reminders: { Args: never; Returns: undefined }
+      sync_all_business_visibility: { Args: never; Returns: undefined }
+      update_overdue_days: { Args: never; Returns: undefined }
       validate_signup_role: {
         Args: {
           p_email: string

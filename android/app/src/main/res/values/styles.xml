@@ -17,13 +17,9 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <!-- Color de fondo del splash screen (Android 12+) -->
         <item name="android:windowSplashScreenBackground">@color/splash_background</item>
-        <!-- Icono animado del splash (logo) (Android 12+) -->
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
-        <!-- Duración de la animación en milisegundos (Android 12+) -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="android:windowSplashScreenAnimationDuration">200</item>
-        <!-- Color de fondo para versiones anteriores a Android 12 -->
         <item name="android:background">@color/splash_background</item>
     </style>
 </resources>

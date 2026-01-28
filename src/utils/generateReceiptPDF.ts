@@ -30,9 +30,9 @@ export const generateReceiptPDF = (data: ReceiptData): void => {
       format: 'a4',
     });
 
-    // Colores (valores RGB 0-255 convertidos a 0-1)
-    const primaryColor = [0, 0, 0]; // Negro para logo/título
-    const secondaryColor = [128, 128, 128]; // Gris para texto secundario
+    // Colores (valores RGB 0-255)
+    const primaryColor: [number, number, number] = [0, 0, 0]; // Negro para logo/título
+    const secondaryColor: [number, number, number] = [128, 128, 128]; // Gris para texto secundario
 
     // Logo/Título MiTurnow (texto simple por ahora)
     doc.setFontSize(20);
@@ -85,8 +85,8 @@ export const generateReceiptPDF = (data: ReceiptData): void => {
     doc.line(20, yPos + 2, 190, yPos + 2);
     yPos += 8;
 
-    // Tabla de servicios
-    const tableData = data.services.map(service => [
+    // Tabla de servicios (solo strings para el body)
+    const tableData: string[][] = data.services.map(service => [
       service.name || 'Servicio',
       `${service.duration_minutes || 0} min`,
       `RD$ ${(service.price_rd || 0).toLocaleString()}`,
@@ -95,10 +95,10 @@ export const generateReceiptPDF = (data: ReceiptData): void => {
 
     // Agregar fila de totales
     tableData.push([
-      { content: 'TOTAL', styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } },
+      'TOTAL',
       '',
-      { content: `RD$ ${data.totalPriceRD.toLocaleString()}`, styles: { fontStyle: 'bold' } },
-      { content: `USD $${data.totalPriceUSD.toFixed(2)}`, styles: { fontStyle: 'bold' } },
+      `RD$ ${data.totalPriceRD.toLocaleString()}`,
+      `USD $${data.totalPriceUSD.toFixed(2)}`,
     ]);
 
     autoTable(doc, {
