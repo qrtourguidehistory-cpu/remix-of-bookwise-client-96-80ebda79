@@ -138,7 +138,7 @@ const Index = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
           <p className="text-destructive mb-4">
-            {t("common.error")}: {error}
+            {t("common.error")}: {error instanceof Error ? error.message : String(error)}
           </p>
           <Button onClick={() => window.location.reload()}>
             {t("common.retry")}
