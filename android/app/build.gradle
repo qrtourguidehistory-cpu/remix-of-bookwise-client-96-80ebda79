@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+def date = new Date()
+def formattedDate = date.format('yyyyMMddHH')
+
 android {
     signingConfigs {
         cliente_prod {
@@ -15,7 +18,7 @@ android {
         applicationId "com.miturnow.cliente"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
+        versionCode formattedDate.toInteger()
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

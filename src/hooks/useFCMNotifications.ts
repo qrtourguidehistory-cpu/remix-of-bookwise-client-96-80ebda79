@@ -32,6 +32,7 @@ export const useFCMNotifications = (userId: string | undefined) => {
 
   // Register FCM token in database using UPSERT to avoid duplicates
   // This function handles token registration/update in client_devices table
+  // CRÍTICO: Valida sesión y user_id antes de registrar
   const registerToken = useCallback(async (token: string, currentUserId: string) => {
     const platform = Capacitor.getPlatform();
     
@@ -40,41 +41,54 @@ export const useFCMNotifications = (userId: string | undefined) => {
       console.log('📱 [FCM] Registrando token para usuario:', currentUserId);
       console.log('📱 [FCM] Plataforma:', platform);
       
-      // Get the current session for auth header
+      // VALIDACIÓN CRÍTICA: Verificar sesión válida
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         console.error('❌ [FCM] Error al obtener sesión:', sessionError);
-        // No bloquear la app, solo loguear el error
-        return;
+        return; // NO registrar sin sesión válida
       }
       
       if (!session?.access_token) {
         console.warn('⚠️ [FCM] No hay sesión activa, no se puede registrar el token');
-        // No bloquear la app, solo loguear la advertencia
-        return;
+        return; // NO registrar sin sesión válida
+      }
+      
+      // VALIDACIÓN CRÍTICA: Verificar que userId coincide con sesión
+      if (currentUserId !== session.user.id) {
+        console.error('❌ [FCM] user_id no coincide con sesión activa. userId:', currentUserId, 'session.user.id:', session.user.id);
+        return; // NO registrar si userId no coincide
+      }
+      
+      // VALIDACIÓN CRÍTICA: Verificar que userId no sea null/undefined
+      if (!currentUserId || currentUserId.trim() === '') {
+        console.error('❌ [FCM] user_id es inválido:', currentUserId);
+        return; // NO registrar sin user_id válido
       }
       
       // Use Supabase client for UPSERT operation
-      // UPSERT: Si existe un registro con el mismo user_id y fcm_token, lo actualiza
+      // UPSERT: Si existe un registro con el mismo fcm_token, lo actualiza
       // Si no existe, lo crea
-      // La constraint única es client_devices_user_token_unique (user_id, fcm_token)
+      // La constraint única es client_devices_fcm_token_unique (UNIQUE en fcm_token)
+      // CRÍTICO: Siempre incluir role = 'client' para dispositivos de la app cliente
       const { data, error } = await supabase
         .from('client_devices')
         .upsert(
           {
             user_id: currentUserId,
             fcm_token: token,
-            platform: platform === 'android' ? 'android' : platform, // Asegurar 'android' para Android
+            platform: platform === 'android' ? 'android' : platform,
+            role: 'client', // CRÍTICO: Siempre 'client' para la app cliente
+            is_active: true, // Activar el token al iniciar sesión
             device_info: {
               userAgent: navigator.userAgent || 'unknown',
               timestamp: new Date().toISOString(),
-              appVersion: '1.0.0', // Puedes obtener esto de package.json o config
+              appVersion: '1.0.0',
             },
             updated_at: new Date().toISOString()
           },
           {
-            onConflict: 'client_devices_user_token_unique', // Usar el nombre de la constraint única
+            onConflict: 'fcm_token', // Usar la constraint única que existe en la BD: UNIQUE (fcm_token)
             ignoreDuplicates: false // Actualizar en lugar de ignorar
           }
         )
@@ -83,7 +97,6 @@ export const useFCMNotifications = (userId: string | undefined) => {
       if (error) {
         console.error('❌ [FCM] Error al registrar token en Supabase:', error);
         console.error('❌ [FCM] Detalles del error:', JSON.stringify(error, null, 2));
-        // No bloquear la app, solo loguear el error
         setError(`Error al registrar token: ${error.message}`);
         return;
       }
@@ -92,17 +105,16 @@ export const useFCMNotifications = (userId: string | undefined) => {
         console.log('✅ [FCM] Token registrado/actualizado exitosamente en Supabase');
         console.log('✅ [FCM] Registro ID:', data[0].id);
         console.log('✅ [FCM] Token guardado:', data[0].fcm_token?.substring(0, 20) + '...');
+        console.log('✅ [FCM] Role:', data[0].role || 'NO DEFINIDO');
       } else {
         console.warn('⚠️ [FCM] Token registrado pero no se recibió confirmación');
       }
       
     } catch (err) {
-      // No bloquear la app si falla el registro del token
       console.error('❌ [FCM] Excepción al registrar token:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al registrar token';
       console.error('❌ [FCM] Mensaje de error:', errorMessage);
       setError(errorMessage);
-      // No lanzar el error, solo loguearlo para no bloquear la app
     }
   }, []);
 
@@ -153,17 +165,49 @@ export const useFCMNotifications = (userId: string | undefined) => {
     }
     console.log('✅ [FCM] Sesión activa confirmada para usuario:', session.user.id);
 
-    // Permitir reintentos si el usuario cambia o si no se ha llamado register() aún
-    if (initializationAttempted.current === userId && registrationCalled.current) {
-      console.log('ℹ️ [FCM] Ya se intentó inicialización para este usuario y register() fue llamado');
-      return;
-    }
-
     // Si cambió el usuario, resetear el flag
     if (initializationAttempted.current !== userId) {
       console.log('🔄 [FCM] Usuario cambió, reiniciando inicialización');
       initializationAttempted.current = userId;
       registrationCalled.current = false;
+    }
+
+    // Verificar si ya se intentó inicializar para este usuario
+    if (initializationAttempted.current === userId && registrationCalled.current) {
+      // Verificar si el token existe y está activo en Supabase antes de bloquear
+      console.log('🔍 [FCM] Verificando si el token está registrado y activo en Supabase...');
+      try {
+        const { data: existingDevices, error: checkError } = await supabase
+          .from('client_devices')
+          .select('id, fcm_token, is_active, role')
+          .eq('user_id', userId)
+          .eq('role', 'client')
+          .eq('is_active', true)
+          .limit(1);
+
+        if (checkError) {
+          console.warn('⚠️ [FCM] Error al verificar token en Supabase:', checkError);
+          // Si hay error, permitir reinicialización
+          console.log('🔄 [FCM] Error al verificar, permitiendo reinicialización');
+          initializationAttempted.current = null;
+          registrationCalled.current = false;
+        } else if (existingDevices && existingDevices.length > 0) {
+          console.log('✅ [FCM] Token ya existe y está activo en Supabase, omitiendo reinicialización');
+          console.log('📱 [FCM] Token ID:', existingDevices[0].id);
+          setIsLoading(false);
+          return;
+        } else {
+          console.log('⚠️ [FCM] No hay token activo en Supabase, forzando reinicialización');
+          // No hay token activo, forzar reinicialización
+          initializationAttempted.current = null;
+          registrationCalled.current = false;
+        }
+      } catch (err) {
+        console.error('❌ [FCM] Error al verificar token en Supabase:', err);
+        // Si hay error, permitir reinicialización
+        initializationAttempted.current = null;
+        registrationCalled.current = false;
+      }
     }
 
     console.log('✅ [FCM] Iniciando inicialización de FCM...');

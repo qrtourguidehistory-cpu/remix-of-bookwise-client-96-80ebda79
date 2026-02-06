@@ -453,6 +453,25 @@ export function useAppointments() {
       
       console.log("Appointment created successfully:", data);
 
+      // Notify partner about new appointment via Edge Function
+      if (data?.id) {
+        console.log("PUSH::START::create", { appointment_id: data.id });
+        try {
+          const { data: pushData, error: pushError } = await supabase.functions.invoke('notify-new-appointment', {
+            body: { appointment_id: data.id }
+          });
+          
+          if (pushError) {
+            console.log("PUSH::ERROR::create", { appointment_id: data.id, error: pushError });
+          } else {
+            console.log("PUSH::SUCCESS::create", { appointment_id: data.id, response: pushData });
+          }
+        } catch (notifyError) {
+          // Don't block appointment creation if notification fails
+          console.log("PUSH::ERROR::create", { appointment_id: data.id, error: notifyError });
+        }
+      }
+
       // Insert appointment services (only if service IDs are valid UUIDs)
       if (appointmentData.services.length > 0 && data) {
         const validServices = appointmentData.services.filter(s => isValidUUID(s.id));
@@ -585,6 +604,23 @@ export function useAppointments() {
       }
 
       console.log("Appointment cancelled successfully");
+
+      // Notify partner about appointment cancellation via Edge Function
+      console.log("PUSH::START::cancel", { appointment_id: appointmentId });
+      try {
+        const { data: pushData, error: pushError } = await supabase.functions.invoke('notify-appointment-cancelled', {
+          body: { appointment_id: appointmentId }
+        });
+        
+        if (pushError) {
+          console.log("PUSH::ERROR::cancel", { appointment_id: appointmentId, error: pushError });
+        } else {
+          console.log("PUSH::SUCCESS::cancel", { appointment_id: appointmentId, response: pushData });
+        }
+      } catch (notifyError) {
+        // Don't block cancellation if notification fails
+        console.log("PUSH::ERROR::cancel", { appointment_id: appointmentId, error: notifyError });
+      }
 
       toast({
         title: "Cita cancelada",

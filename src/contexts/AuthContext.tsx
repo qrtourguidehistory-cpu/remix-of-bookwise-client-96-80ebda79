@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
-import { initPushNotifications } from '@/utils/pushNotifications';
+// DEPRECATED: initPushNotifications removido - usar FCMInitializer con useFCMNotifications
 import { useCapacitorOAuth } from '@/hooks/useCapacitorOAuth';
 
 type ClientProfileRow = Tables<"client_profiles">;
@@ -74,15 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('✅ AuthContext: Platform:', Capacitor.getPlatform());
           console.log('✅ AuthContext: isNativePlatform:', Capacitor.isNativePlatform());
           
-          // Inicializar push notifications SOLO después del login
-          setTimeout(() => {
-            if (Capacitor.isNativePlatform()) {
-              console.log('✅ AuthContext: Iniciando push notifications después de SIGNED_IN...');
-              initPushNotifications(session.user.id).catch((err) => {
-                console.error('❌ AuthContext: Error al inicializar push notifications:', err);
-              });
-            }
-          }, 500);
+          // Push notifications manejado por FCMInitializer con useFCMNotifications
+          // No inicializar aquí para evitar duplicados
           
           // El AuthRedirectHandler se encargará de la redirección
         } else if (event === 'SIGNED_OUT') {
@@ -123,15 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           await fetchProfile(session.user.id);
           
-          // Inicializar push notifications si hay sesión existente
-          setTimeout(() => {
-            if (Capacitor.isNativePlatform()) {
-              console.log('✅ AuthContext: Iniciando push notifications para sesión existente...');
-              initPushNotifications(session.user.id).catch((err) => {
-                console.error('❌ AuthContext: Error al inicializar push notifications:', err);
-              });
-            }
-          }, 1000);
+          // Push notifications manejado por FCMInitializer con useFCMNotifications
+          // No inicializar aquí para evitar duplicados
         } else {
           console.log('ℹ️ AuthContext: No hay sesión existente');
           setSession(null);
@@ -280,6 +266,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    // Antes de cerrar sesión, desactivar todos los tokens del usuario actual
+    if (user?.id) {
+      try {
+        console.log('🔐 [AuthContext] Desactivando tokens de notificaciones antes de cerrar sesión...');
+        
+        // Buscar todos los registros en client_devices para este usuario y desactivarlos
+        const { error: updateError } = await supabase
+          .from('client_devices')
+          .update({ is_active: false })
+          .eq('user_id', user.id);
+        
+        if (updateError) {
+          console.error('❌ [AuthContext] Error al desactivar tokens:', updateError);
+          // No bloquear el logout si falla la actualización
+        } else {
+          console.log('✅ [AuthContext] Tokens desactivados exitosamente');
+        }
+      } catch (err) {
+        console.error('❌ [AuthContext] Excepción al desactivar tokens:', err);
+        // No bloquear el logout si falla la actualización
+      }
+    }
+    
     await supabase.auth.signOut();
     setIsGuest(false);
     localStorage.removeItem('guestMode');

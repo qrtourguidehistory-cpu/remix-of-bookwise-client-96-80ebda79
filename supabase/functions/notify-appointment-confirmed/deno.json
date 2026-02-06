@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "firebase-admin": "npm:firebase-admin@11.0.0"
+  }
+}
+

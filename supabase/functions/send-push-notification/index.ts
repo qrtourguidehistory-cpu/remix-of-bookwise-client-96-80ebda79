@@ -237,13 +237,15 @@ serve(async (req) => {
     console.log(`DEBUG: Consultando client_devices para user: ${user_id} y role: ${userRole}`);
     
     // Get FCM tokens from client_devices table (unified table for both clients and partners)
-    // Filter by user_id AND role to get the correct devices
+    // Filter by user_id AND role AND is_active to get the correct active devices
     // CRÍTICO: Asegurar que el role sea exactamente 'client' o 'partner' en minúsculas
+    // CRÍTICO: Solo enviar notificaciones a dispositivos activos (is_active = true)
     const { data: devices, error: devicesError } = await supabase
       .from('client_devices')
       .select('id, fcm_token, platform')
       .eq('user_id', user_id)
-      .eq('role', userRole);  // userRole ya está normalizado a 'client' o 'partner' en minúsculas
+      .eq('role', userRole)  // userRole ya está normalizado a 'client' o 'partner' en minúsculas
+      .eq('is_active', true);  // Solo dispositivos activos pueden recibir notificaciones
 
     if (devicesError) {
       console.error('❌ Error fetching devices:', devicesError);

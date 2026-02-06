@@ -1,6 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, DollarSign, Scissors, Mail, FileText } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, User, DollarSign, Scissors, Mail, FileText, X, Building2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { useTimeFormat } from "@/hooks/useTimeFormat";
@@ -104,6 +104,7 @@ export function AppointmentDetailDialog({
 
   const isPast = appointment.date && new Date(appointment.date) < new Date();
   const isCancelled = appointment.status === "cancelled";
+  const isCompleted = appointment.status === "completed";
 
   // Determine currency - use appointment currency or default from first service
   const getCurrency = () => {
@@ -119,26 +120,26 @@ export function AppointmentDetailDialog({
     switch (appointment.status) {
       case "confirmed":
         return (
-          <span className="px-3 py-1 bg-success/10 text-success text-xs font-medium rounded-full">
+          <span className="px-4 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
             {t("appointments.confirmed") || "Confirmada"}
           </span>
         );
       case "cancelled":
         return (
-          <span className="px-3 py-1 bg-destructive/10 text-destructive text-xs font-medium rounded-full">
+          <span className="px-4 py-1.5 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
             {t("appointments.cancelled") || "Cancelada"}
           </span>
         );
       case "completed":
         return (
-          <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full">
+          <span className="px-4 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full border border-slate-200">
             {t("appointments.completed") || "Completada"}
           </span>
         );
       case "pending":
       default:
         return (
-          <span className="px-3 py-1 bg-warning/10 text-warning text-xs font-medium rounded-full">
+          <span className="px-4 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
             {t("appointments.pending") || "Pendiente"}
           </span>
         );
@@ -147,184 +148,249 @@ export function AppointmentDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Detalles de la Cita</span>
+      <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col bg-slate-50 [&>button]:hidden">
+        {/* Header Premium */}
+        <div 
+          className="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-5 flex items-center justify-between shadow-sm" 
+          style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top, 1.25rem))' }}
+        >
+          <DialogHeader className="flex-1">
+            <DialogTitle className="text-xl font-bold text-slate-900">
+              Detalles de la Cita
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center gap-3">
             {getStatusBadge()}
-          </DialogTitle>
-        </DialogHeader>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5 text-slate-600" />
+              </Button>
+            </DialogClose>
+          </div>
+        </div>
 
-        <div className="space-y-4 mt-4">
-          {/* Establishment */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <MapPin className="w-5 h-5 text-gray-700" strokeWidth={2} />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Establecimiento</p>
-              <p className="font-medium text-foreground">
-                {appointment.establishment?.name || "N/A"}
-              </p>
-              {appointment.establishment?.address && (
-                <p className="text-sm text-muted-foreground">
-                  {appointment.establishment.address}
+        {/* Contenido con scroll */}
+        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
+          {/* Tarjeta: Información del Establecimiento */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <Building2 className="w-6 h-6 text-slate-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                  Establecimiento
                 </p>
-              )}
+                <p className="text-base font-bold text-slate-900 mb-1">
+                  {appointment.establishment?.name || "N/A"}
+                </p>
+                {appointment.establishment?.address && (
+                  <div className="flex items-start gap-1.5 mt-2">
+                    <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      {appointment.establishment.address}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Date and Time */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-gray-700" strokeWidth={2} />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Fecha y Hora</p>
-              <p className="font-medium text-foreground">
-                {appointment.date
-                  ? format(parseISO(appointment.date), "EEEE, d 'de' MMMM yyyy", {
-                      locale: es,
-                    })
-                  : "N/A"}
-              </p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3 text-gray-600" strokeWidth={2} />
-                {appointment.start_time ? formatTime(appointment.start_time) : "N/A"}
-                {appointment.end_time && ` - ${formatTime(appointment.end_time)}`}
-                {appointment.duration_minutes && ` (${appointment.duration_minutes} min)`}
-              </p>
-            </div>
-          </div>
-
-          {/* Services */}
-          {appointment.services && appointment.services.length > 0 && (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <Scissors className="w-5 h-5 text-gray-700" strokeWidth={2} />
+          {/* Tarjeta: Fecha y Hora */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <Calendar className="w-6 h-6 text-slate-600" strokeWidth={2} />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-2">Servicios</p>
-                <div className="space-y-1">
-                  {appointment.services.map((service) => {
-                    // Ensure price_rd and price_usd are numbers, with fallback to 0
-                    const priceRD = service.price_rd !== undefined && service.price_rd !== null 
-                      ? Number(service.price_rd) 
-                      : (service.price || 0);
-                    const priceUSD = service.price_usd !== undefined && service.price_usd !== null 
-                      ? Number(service.price_usd) 
-                      : 0;
-                    const duration = service.duration_minutes || 0;
-                    
-                    return (
-                      <div key={service.id} className="flex items-center justify-between">
-                        <p className="font-medium text-foreground">{service.name || "Servicio"}</p>
-                        <div className="text-sm text-muted-foreground text-right">
-                          <p>{duration} min</p>
-                          <p className="font-medium text-foreground">
-                            RD$ {priceRD.toLocaleString()} / USD ${priceUSD.toFixed(2)}
-                          </p>
-                        </div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                  Fecha y Hora
+                </p>
+                <p className="text-base font-bold text-slate-900 mb-2">
+                  {appointment.date
+                    ? format(parseISO(appointment.date), "EEEE, d 'de' MMMM yyyy", {
+                        locale: es,
+                      })
+                    : "N/A"}
+                </p>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Clock className="w-4 h-4 text-slate-400" strokeWidth={2} />
+                  <span>
+                    {appointment.start_time ? formatTime(appointment.start_time) : "N/A"}
+                    {appointment.end_time && ` - ${formatTime(appointment.end_time)}`}
+                    {appointment.duration_minutes && ` • ${appointment.duration_minutes} min`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tarjeta: Servicios */}
+          {appointment.services && appointment.services.length > 0 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <Scissors className="w-6 h-6 text-slate-600" strokeWidth={2} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                    Servicios
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 ml-16">
+                {appointment.services.map((service) => {
+                  const priceRD = service.price_rd !== undefined && service.price_rd !== null 
+                    ? Number(service.price_rd) 
+                    : (service.price || 0);
+                  const priceUSD = service.price_usd !== undefined && service.price_usd !== null 
+                    ? Number(service.price_usd) 
+                    : 0;
+                  const duration = service.duration_minutes || 0;
+                  
+                  return (
+                    <div key={service.id} className="flex items-center justify-between pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900 mb-1">
+                          {service.name || "Servicio"}
+                        </p>
+                        <p className="text-xs text-slate-500">{duration} min</p>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-900">
+                          RD$ {priceRD.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          USD ${priceUSD.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* Staff */}
+          {/* Tarjeta: Profesional */}
           {appointment.staff?.full_name && (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Profesional</p>
-                <p className="font-medium text-foreground">
-                  {appointment.staff.full_name}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Client Information - A nombre de (quien recibe el servicio) */}
-          {appointment.client_name && (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">A nombre de</p>
-                <p className="font-medium text-foreground">
-                  {appointment.client_name}
-                </p>
-                {appointment.client_phone && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <Phone className="w-3 h-3 text-gray-600" strokeWidth={2} />
-                    {appointment.client_phone}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <User className="w-6 h-6 text-slate-600" strokeWidth={2} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                    Profesional
                   </p>
-                )}
-                {appointment.client_email && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <Mail className="w-3 h-3 text-gray-600" strokeWidth={2} />
-                    {appointment.client_email}
+                  <p className="text-base font-bold text-slate-900">
+                    {appointment.staff.full_name}
                   </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Reserved By - Reservado por (quien hizo la reserva) */}
-          {/* IMPORTANTE: Usar clients.first_name y clients.last_name de la tabla clients, NO client_name */}
-          {/* client_name es solo para el beneficiario (encabezado), NO para "Reservado por" */}
-          {appointment.clients && (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Reservado por</p>
-                <p className="font-medium text-foreground">
-                  {appointment.clients.first_name && appointment.clients.last_name
-                    ? `${appointment.clients.first_name} ${appointment.clients.last_name}`.trim()
-                    : appointment.clients.full_name || 
-                      appointment.clients.email ||
-                      'Usuario'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Price */}
-          {appointment.price && (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <DollarSign className="w-5 h-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Precio Total</p>
-                <div className="font-medium text-foreground">
-                  <p>RD$ {(appointment.price_rd || appointment.price || 0).toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">USD ${(appointment.price_usd || 0).toFixed(2)}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Notes */}
-          {appointment.notes && (
-            <div className="bg-muted rounded-lg p-3">
-              <p className="text-sm text-muted-foreground mb-1">Notas</p>
-              <p className="text-sm text-foreground">{appointment.notes}</p>
+          {/* Tarjeta: Información del Cliente */}
+          {(appointment.client_name || appointment.clients) && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              {/* A nombre de */}
+              {appointment.client_name && (
+                <div className="mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                      <User className="w-6 h-6 text-slate-600" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                        A nombre de
+                      </p>
+                      <p className="text-base font-bold text-slate-900 mb-2">
+                        {appointment.client_name}
+                      </p>
+                      {appointment.client_phone && (
+                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                          <Phone className="w-4 h-4 text-slate-400" strokeWidth={2} />
+                          <span>{appointment.client_phone}</span>
+                        </div>
+                      )}
+                      {appointment.client_email && (
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                          <Mail className="w-4 h-4 text-slate-400" strokeWidth={2} />
+                          <span>{appointment.client_email}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Reservado por */}
+              {appointment.clients && (
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                    <User className="w-6 h-6 text-slate-600" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                      Reservado por
+                    </p>
+                    <p className="text-base font-bold text-slate-900">
+                      {appointment.clients.first_name && appointment.clients.last_name
+                        ? `${appointment.clients.first_name} ${appointment.clients.last_name}`.trim()
+                        : appointment.clients.full_name || 
+                          appointment.clients.email ||
+                          'Usuario'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Cancellation Policy */}
+          {/* Tarjeta: Precio Total */}
+          {appointment.price && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-6 h-6 text-slate-600" strokeWidth={2} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                    Precio Total
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900 mb-1">
+                    RD$ {(appointment.price_rd || appointment.price || 0).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    USD ${(appointment.price_usd || 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tarjeta: Notas */}
+          {appointment.notes && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+                Notas
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {appointment.notes}
+              </p>
+            </div>
+          )}
+
+          {/* Tarjeta: Política de Cancelación */}
           {!isPast && !isCancelled && (
-            <div className="bg-warning/10 rounded-lg p-3">
-              <p className="text-sm text-warning font-medium">Política de Cancelación</p>
-              <p className="text-xs text-muted-foreground mt-1">
+            <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+              <p className="text-sm font-bold text-amber-900 mb-1.5">Política de Cancelación</p>
+              <p className="text-xs text-amber-700 leading-relaxed">
                 Las cancelaciones deben realizarse con al menos 24 horas de anticipación.
                 La política de reembolso varía según el establecimiento.
               </p>
@@ -332,23 +398,28 @@ export function AppointmentDetailDialog({
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-3 mt-6">
-          {/* Botón de Recibo PDF - Visible siempre */}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleGenerateReceipt}
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Generar Recibo PDF
-          </Button>
+        {/* Footer Premium con acciones */}
+        <div 
+          className="sticky bottom-0 bg-white border-t border-slate-200 px-4 py-4 flex flex-col gap-3 shadow-lg" 
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+        >
+          {/* Botón de Recibo PDF - Solo si la cita está completada */}
+          {isCompleted && (
+            <Button
+              variant="outline"
+              className="w-full rounded-full h-11 font-semibold border-slate-300 hover:bg-slate-50 active:bg-slate-100 transition-all"
+              onClick={handleGenerateReceipt}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Generar Recibo PDF
+            </Button>
+          )}
           
           <div className="flex gap-3">
             {!isPast && !isCancelled && onCancel && (
               <Button
                 variant="outline"
-                className="flex-1 text-destructive hover:text-destructive"
+                className="flex-1 rounded-full h-11 font-semibold text-rose-600 border-rose-300 hover:bg-rose-50 hover:text-rose-700 active:bg-rose-100 transition-all"
                 onClick={() => {
                   onCancel(appointment.id);
                   onOpenChange(false);
@@ -360,7 +431,7 @@ export function AppointmentDetailDialog({
             {(isPast || isCancelled) && onRebook && (
               <Button
                 variant="coral"
-                className="flex-1"
+                className="flex-1 rounded-full h-11 font-semibold hover:opacity-90 active:opacity-80 transition-all"
                 onClick={() => {
                   onRebook(appointment);
                   onOpenChange(false);
@@ -372,7 +443,7 @@ export function AppointmentDetailDialog({
             <Button
               variant="secondary"
               onClick={() => onOpenChange(false)}
-              className={!isPast && !isCancelled ? "" : "flex-1"}
+              className={`${!isPast && !isCancelled && onCancel ? "" : "flex-1"} rounded-full h-11 font-semibold hover:bg-slate-100 active:bg-slate-200 transition-all`}
             >
               Cerrar
             </Button>

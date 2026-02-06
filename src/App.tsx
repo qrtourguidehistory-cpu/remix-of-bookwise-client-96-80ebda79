@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AuthRedirectHandler } from "@/components/auth/AuthRedirectHandler";
+import { FCMInitializer } from "@/components/notifications/FCMInitializer";
 import { useBackButton } from "@/hooks/useBackButton";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { useThemeInitializer } from "@/hooks/useThemeInitializer";
@@ -88,10 +89,11 @@ const App = () => (
           <BrowserRouter>
             <NativeNavigationHandler>
               <AuthProvider>
-                <AuthRedirectHandler />
-                <NotificationsProvider>
-                  <EarlyArrivalHandler />
-                  <Suspense fallback={<PageLoader />}>
+                <FCMInitializer>
+                  <AuthRedirectHandler />
+                  <NotificationsProvider>
+                    <EarlyArrivalHandler />
+                    <Suspense fallback={<PageLoader />}>
                     <Routes>
                       {/* Public Auth Routes */}
                       <Route path="/splash" element={<SplashScreen />} />
@@ -124,6 +126,7 @@ const App = () => (
                     </Routes>
                   </Suspense>
                 </NotificationsProvider>
+                </FCMInitializer>
               </AuthProvider>
             </NativeNavigationHandler>
           </BrowserRouter>
